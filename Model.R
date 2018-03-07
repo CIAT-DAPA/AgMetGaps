@@ -28,14 +28,14 @@ suppressMessages(if(!require(geoR)){install.packages('geoR'); library(geoR)} els
 
 ### Lectura del shp
 shp <- shapefile(paste0(dir_path, '0_general_inputs/shp/mapa_mundi.shp',sep="")) %>% 
-  crop(extent(-180, 180, -50, 50)
+  crop(extent(-180, 180, -50, 50))
        
-       ewbrks <- c(seq(-180,0,45), seq(0, 180, 45))
-       nsbrks <- seq(-50,50,25)
-       ewlbls <- unlist(lapply(ewbrks, function(x) ifelse(x < 0, paste(abs(x), "°W"), ifelse(x > 0, paste( abs(x), "°E"),x))))
-       nslbls <- unlist(lapply(nsbrks, function(x) ifelse(x < 0, paste(abs(x), "°S"), ifelse(x > 0, paste(abs(x), "°N"),x))))
+       #ewbrks <- c(seq(-180,0,45), seq(0, 180, 45))
+       #nsbrks <- seq(-50,50,25)
+       #ewlbls <- unlist(lapply(ewbrks, function(x) ifelse(x < 0, paste(abs(x), "°W"), ifelse(x > 0, paste( abs(x), "°E"),x))))
+       #nslbls <- unlist(lapply(nsbrks, function(x) ifelse(x < 0, paste(abs(x), "°S"), ifelse(x > 0, paste(abs(x), "°N"),x))))
        
-       Blues<-colorRampPalette(c('#fff7fb','#ece7f2','#d0d1e6','#a6bddb','#74a9cf','#3690c0','#0570b0','#045a8d','#023858','#233159'))
+       #Blues<-colorRampPalette(c('#fff7fb','#ece7f2','#d0d1e6','#a6bddb','#74a9cf','#3690c0','#0570b0','#045a8d','#023858','#233159'))
        
        
        
@@ -55,7 +55,7 @@ shp <- shapefile(paste0(dir_path, '0_general_inputs/shp/mapa_mundi.shp',sep=""))
        ## Settings Iizumi paths
        
        
-       crop <- 'wheat_spring'
+       crop <- 'wheat_spring' # 'rice_major'
        
        Iizumi <- '1_crop_gaps/iizumi_processed/wheat_spring/'
        Iizumi <- glue:: glue('{dir_path}{Iizumi}')
@@ -259,6 +259,15 @@ shp <- shapefile(paste0(dir_path, '0_general_inputs/shp/mapa_mundi.shp',sep=""))
        
        
        
+       options(future.globals.maxSize= 1048576000)
+       
+       
+       
+       ## read monthly precipitation rasters with furure functions 
+       plan(multisession, workers = availableCores() - 3)
+       
+       
+       
        ## read monthly precipitation rasters 
        system.time(  
          dates_raster <-  "1981-1-1"  %>% 
@@ -275,21 +284,232 @@ shp <- shapefile(paste0(dir_path, '0_general_inputs/shp/mapa_mundi.shp',sep=""))
        
        
        
-       
+       future:::ClusterRegistry("stop")
        
        #### Extract points
        
-       # plan(multisession, workers = availableCores() - 4)
+       
+       options(future.globals.maxSize= 1048576000)
+       plan(multisession, workers = availableCores() - 4)
        
        system.time(  
          dates_raster2 <- dates_raster %>% 
            mutate(points = purrr::map(.x = raster_df, .f = ~extract_velox(velox_Object = .x, points = sp_pdate))) 
-       )   
+       )
+       #rs <- dates_raster$raster_df[[1]]
+       #object.size(sp_pdate)
+       
+       
+       future:::ClusterRegistry("stop")
+       
+       
+       
+       
+       ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-= ##
+       
+       # Understand the extract information for each pixel 
+       # This part extact only the information for year, 
+       # month and important points
+       
+       
+       point_dates <-  dates_raster2 %>% 
+         select( year, month, points) %>% 
+         unnest %>% 
+         group_by(lat, long) %>%
+         nest() %>%
+         mutate(id = 1:nrow(.))
+       
+       
+       # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= #
+       
+       
+       
+       
+       make_station <- function(x){
+         
+         weather_station <- x %>% 
+           bind_rows() %>%
+           unnest()
+         
+         coord <- weather_station %>%
+           dplyr::select(lat, long) %>%
+           distinct()
+         
+         lat <- dplyr::pull(coord, 'lat')
+         long <- dplyr::pull(coord, 'long')
+         
+         
+         return(weather_station)}
        
        
        
        
        
+       
+       point_extract <- function(x, y){
+         
+         proof <-  x  %>%
+           inner_join(y , ., by = c('id', 'month')) %>%
+           dplyr::select(-lat.y, -long.y) %>%
+           group_by(phase, year,lat.x, long.x) %>%
+           rename(lat = lat.x, long = long.x, precip =  values) %>% 
+           summarise(prec_clim = sum(precip)) %>%
+           ungroup()
+         
+         
+         
+         test1 <- inner_join(y , x, by = c('id', 'month')) %>%
+           mutate(time = factor(type, labels = c(1, 2, 3))) %>% 
+           filter(time == '2') %>% select(year , month)
+         
+         test <- left_join(proof, test1)
+         
+         return(test)
+       }
+       
+       
+       
+       
+       
+       
+       extract_months <- function(dates, atelier){
+         
+         test <-point_dates %>% 
+           mutate(i = 1:nrow(.)) %>%
+           nest(-i) %>% 
+           mutate(stations = purrr::map(.x =  data , .f =  make_station)) %>% 
+           mutate(each_Pclim =  purrr::map(.x =  stations, .f = point_extract, y = atelier))
+         
+         return(test) }
+       
+       
+       
+       
+       
+       
+       
+       
+       
+       # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= #
+       
+       # out1    ---  folder
+       
+       chirps.p <- paste0(dir_path, '3_monthly_climate_variability/filter_chirps/', crop)
+       
+       
+       
+       
+       id_creation <- function(.x){
+         .x %>% 
+           group_by(type) %>%
+           mutate(id = 1:length(type)) %>%
+           ungroup() 
+       }
+       
+       #### paralelizar ... 
+       
+       
+       plan(multisession, workers = availableCores() - 3)
+       
+       system.time(
+         month_prec <- crop.time %>% 
+           rename(long = x,  lat  =  y) %>%
+           mutate(control =  phase)  %>% 
+           nest(-control) %>% 
+           mutate(id_data = purrr::map(.x = data, .f = id_creation)) %>% 
+           select(control, id_data) %>%  filter(row_number() == 1) %>% 
+           mutate(ext.months = purrr::map(.x = id_data,  .f = ~future(extract_months(.x))) ) %>% #  dates = point_dates,
+           mutate(ext.months =  purrr::map(.x = ext.months, .f = ~value(.x)))
+       )
+       
+       
+       future:::ClusterRegistry("stop")
+       
+       
+  
+  # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= # 
+       #Write out to netcdf format
+       #writeRaster(month_prec, paste0(dir_path, '3_monthly_climate_variability/filter_chirps/wheat_spring/month_prec.nc'), overwrite=TRUE, format="CDF", varname="Temperature", varunit="degC", 
+       #             longname="Precipitacion_trim", xname="X", yname="Y",zname="Year",
+       #             zunit="numeric")
+       
+  # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= # 
+       
+       
+       
+       
+       
+       
+       ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-= ##
+       ##                Mean Temperature: NCEP CPC GHCN_CAMS     
+       ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-= ##
+       
+       
+       
+       
+## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= # 
+       
+       # read a one raster to GHCN_CAMS
+       
+       
+       raster_mod_temp <- function(.x, .y){
+         raster(.x, band = .y) %>% 
+           rotate
+       }
+       
+       
+       
+       extract_velox_temp <- function(velox_Object, points){
+         coords <- coordinates(points) %>%
+           tbl_df() %>%
+           rename(lat = V1, long = V2)
+         velox_Object$extract(points, fun = function(x){ 
+           mean(x, na.rm = T)}) %>%
+           tbl_df() %>%
+           rename(values = V1) %>%
+           bind_cols(coords) %>%
+           dplyr::select(lat, long, values)
+       }
+       
+       
+## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= #        
+       
+       
+       
+       
+       
+       GHCN_CAMS <- '0_general_inputs/GHCN_CAMS/'
+       
+       
+       
+       
+options(future.globals.maxSize= 1048576000)
+       
+## read monthly precipitation rasters with furure functions 
+plan(multisession, workers = availableCores() - 3)
+       
+       
+
+       
+       system.time(  
+         # read monthly temperature
+         GHCN_CAMS <-   str_extract(nc_open(paste0('0_general_inputs/chips_monthly/', 'chirps-v2.0.monthly.nc'))$dim$time$units,
+                                    "\\d{4}-\\d{1}-\\d{1}") %>%
+           as.Date() %>%
+           seq(by = "month", length.out = n_bands)  %>%
+           data_frame(date = .) %>%
+           mutate(year = year(date), month = month(date)) %>%
+           mutate(band = 1:n_bands, file = rep(paste0(GHCN_CAMS, 'data.nc'), n_bands)) %>%
+           mutate(load_raster = purrr::map2(.x = file, .y = band, .f = ~future(raster_mod_temp(.x,.y)))) %>%
+           mutate(load_raster = purrr::map(.x = load_raster, .f = ~value(.x))) %>% 
+           mutate(raster_df = purrr::map(.x = load_raster, .f = ~future(velox(.x)))) %>%
+           mutate(raster_df = purrr::map(raster_df, .f = ~value(.x))) %>% 
+           mutate(points = purrr::map(.x = raster_df, .f = ~future(extract_velox_temp(velox_Object = .x, points = sp_pdate)))) %>%
+           mutate(points = purrr::map(points, ~value(.x))) 
+       )
+       
+       
+future:::ClusterRegistry("stop")
        
        
        

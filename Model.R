@@ -10,6 +10,9 @@ require(rgdal)
 require(ncdf4)
 require(rgeos)
 require(sf)
+require(mgcv)
+require(future)
+require(doFuture)
 
 # =-=-=-=-=-=-=-=-=-= Routes
 rootPath <- '//dapadfs/Workspace_cluster_9/AgMetGaps/'
@@ -28,46 +31,32 @@ model <- function(.x , .y){
   }
 }
 
-#### GAM
-# gam_model <- function(.x,.y){ 
+### GAM
+gam_model <- function(.x,.y){ 
 
-#     if(.x == 0){
-#     gm <- gam(.y$yield~ s(.y$value,fx = TRUE) )
-#     dev <- summary(gm)$dev.expl  
+   if(.x == 0){
+   gm <- gam(.y$yield~ s(.y$value,fx = TRUE) )
+   dev <- summary(gm)$dev.expl  
 
-#     }else{
+   }else{
 
-#     gm <- gam(.y$yield[-1]~ s(.y$value[-31],fx = TRUE) )
-#     dev <- summary(gm)$dev.expl 
+   gm <- gam(.y$yield[-1]~ s(.y$value[-31],fx = TRUE) )
+   dev <- summary(gm)$dev.expl 
 
-#     }
-#     return(dev)
-# }
+   }
+   return(dev)
+}
 
 calcModels <- function(crop, seasonCrop){
   # crop <- 'Maize'
   # seasonCrop <- 'maize_major'
-  # rm(flor);  g <- gc();  rm(g);  removeTmpFiles( h = 24)
+  # g <- gc();  rm(g);  removeTmpFiles( h = 24)
   
   # =-=-=-=-=-=-=-=-=-= Calendar (raster)
-  calendar <- list.files(paste0(calendarPath, crop), pattern = '.tif$', full.names = TRUE) %>%
+  calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
     stack() %>% 
-    crop(extent(-180, 180, -50, 50)) %>%
-    as.integer(.)
-  
-  # calendar2 <- list.files(paste0(calendarPath, crop), pattern = '.tif$', full.names = TRUE) %>% 
-  #   stack() %>% 
-  #   crop(extent(-180, 180, -50, 50)) %>% 
-  #   as.integer(.) %>%
-  #   rasterToPoints(x = .) %>% 
-  #   as_tibble(.)  %>% 
-  #   dplyr::mutate(., ID = 1:nrow(.) ) 
-  # 
-  # # 1. verificar si existen NA, ya que dependiendo del archivo pueden llamarse NaN, NA o -999
-  # sum(is.na(calendar2$FloweringMonth))
-  # sum(is.na(calendar2$HarvestMonth))
-  # sum(is.na(calendar2$PlantingMonth))
-  
+    crop(extent(-180, 180, -50, 50))
+
   # =-=-=-=-=-=-=-=-= read all data sets
   
   # =-=-=-=-=-= read gap data
@@ -83,7 +72,7 @@ calcModels <- function(crop, seasonCrop){
     
     print(paste0('Crop: ', crop, ' - Season: ', seasonCrop, ' - Variable: ', names))
     
-    climate <- stack(x = list.files(paste0(climatePath, crop), full.names=T)[1] , bands= 1:31) %>% 
+    climate <- stack(x = list.files(paste0(climatePath, crop), full.names=T)[i] , bands= 1:31) %>% 
       flip(., direction = 2) %>%
       t()
     
@@ -100,9 +89,9 @@ calcModels <- function(crop, seasonCrop){
       mutate(., ID = 1:nrow(.)) %>% 
       filter(layer.1 != -999 ) %>%  # aqui se cambia el valor del NA del clima
       filter( !is.na(yield_1981_gap ) )  %>% 
-      filter( !is.na(FloweringMonth ) )  %>% # en las siguientes 3 lineas se cambia el valor del NA del calendario
-      filter( !is.na(HarvestMonth ) ) %>% 
-      filter( !is.na(PlantingMonth ) )
+      filter( !is.na(FloweringMonthInt ) )  %>% # en las siguientes 3 lineas se cambia el valor del NA del calendario
+      filter( !is.na(HarvestMonthInt ) ) %>% 
+      filter( !is.na(PlantingMonthInt ) )
     
     # =-=-=-=-=-=-=-= Split tables
     climate <- rasts[, c(68, 1:33)] %>% 
@@ -115,7 +104,7 @@ calcModels <- function(crop, seasonCrop){
     
     # Restrictions at year-month 
     calend <- rasts[, c(68,  65:67)] %>% 
-      mutate(HP = HarvestMonth- PlantingMonth, HF = HarvestMonth- FloweringMonth) %>% 
+      mutate(HP = HarvestMonthInt - PlantingMonthInt, HF = HarvestMonthInt - FloweringMonthInt) %>% 
       mutate(year_start =  ifelse(HF > 0 | HP > 0 , 0, 1)) %>% 
       dplyr::select(ID, year_start)
     
@@ -130,10 +119,15 @@ calcModels <- function(crop, seasonCrop){
       left_join(., calend)
     
     # =-=-=-=-=-= Run one model 
+    #plan(multisession, workers = availableCores() - 3)
+    system.time(
     rsquare <- proof %>%
-      mutate(model = purrr::map2(.x = year_start, .y = data, .f = model)) %>%
-      #mutate(GAM = purrr::map2(.x = year_start, .y = data, .f = gam_model))  %>%
+      mutate(model = purrr::map2(.x = year_start, .y = data, .f = model) ) %>%
       dplyr::select(ID, model) %>% unnest
+      # mutate(GAM = purrr::map2(.x = year_start, .y = data, .f = gam_model))  %>%
+      # dplyr::select(ID, model, GAM) %>% unnest
+    )
+    #future:::ClusterRegistry("stop")
     
     # hist(rsquare$model)
     # boxplot(rsquare$model)
@@ -146,29 +140,29 @@ calcModels <- function(crop, seasonCrop){
     #hist(rsquare$GAM)
     #boxplot(rsquare$GAM)
     #sum(rsquare$GAM > 0.5)
-    
+
     shp <- read_sf(paste0(shpPath, 'mapa_mundi.shp')) %>%
       as('Spatial') %>%
       crop(extent(-180, 180, -50, 50))
     
-    rsquareTable %>% 
-      bind_cols(., rasts[,1:2]) %>%
-      ggplot(aes(x = x, y = y))  +
-      geom_tile(aes(fill = model)) + 
-      geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
-      coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
-      labs(x= 'Longitude', y = 'Latitude')
+    rsquare %>% 
+        bind_cols(., rasts[,1:2]) %>%
+        ggplot(aes(x = x, y = y))  +
+        geom_tile(aes(fill = model)) + 
+        geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
+        coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
+        labs(x= 'Longitude', y = 'Latitude')
     
-    ggsave(paste0(modelsPath, crop, '/', i, '_', names, '.png'))
+    ggsave(paste0(modelsPath, crop, '/polynModel_', names, '.png'))
     
-    write.csv(x = rsquareTable, file = paste0(modelsPath, crop, '/', i, '_',  names, '.csv'))
+    write.csv(x = rsquareTable, file = paste0(modelsPath, crop, '/polynModel_',  names, '.csv'))
     
     tmpRaster <- raster(nrow=1200,ncol=4320)
     extent(tmpRaster) <- extent(-180, 180, -50, 50)
     coordinates(rsquareTable) <- ~x+y
     resultRaster <- rasterize(rsquareTable, tmpRaster , rsquareTable$model)
     
-    writeRaster(x = resultRaster, file = paste0(modelsPath, crop, '/', i, '_', names, '.tif'), format="GTiff", overwrite=TRUE)
+    writeRaster(x = resultRaster, file = paste0(modelsPath, crop, '/polynModel_', names, '.tif'), format="GTiff", overwrite=TRUE)
   }
 }
 

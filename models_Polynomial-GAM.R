@@ -34,19 +34,24 @@ model <- function(.x , .y){
 
 ### GAM
 gam_model <- function(.x,.y){ 
-
-   if(.x == 0){
-   gm <- gam(.y$yield~ s(.y$value,fx = TRUE) )
-   dev <- summary(gm)$dev.expl  
-
-   }else{
-
-   gm <- gam(.y$yield[-1]~ s(.y$value[-31],fx = TRUE) )
-   dev <- summary(gm)$dev.expl 
-
-   }
-   return(dev)
-}
+  require(mgcv)
+  
+  tryCatch( {
+    
+    if(.x == 0){
+      gm <- gam(.y$yield~ s(.y$value, fx = TRUE) )
+      dev <- summary(gm)$dev.expl  
+      
+    }else{
+      
+      gm <- gam(.y$yield[-1]~ s(.y$value[-31], fx = TRUE) )
+      dev <- summary(gm)$dev.expl 
+      
+    }
+    return(dev) } 
+    , error = function(e) {
+       return(NA)
+    } )
 
 calcModels <- function(crop, seasonCrop){
   # =-=-=-=-=-=-=-=-=-= Calendar (raster)
@@ -117,30 +122,31 @@ calcModels <- function(crop, seasonCrop){
     system.time(
     rsquare <- proof %>%
       mutate(model = purrr::map2(.x = year_start, .y = data, .f = model) ) %>%
-      dplyr::select(ID, model) %>% unnest
-      # mutate(GAM = purrr::map2(.x = year_start, .y = data, .f = gam_model))  %>%
-      # dplyr::select(ID, model, GAM) %>% unnest
+    #   dplyr::select(ID, model) %>% unnest
+      mutate(GAM = purrr::map2(.x = year_start, .y = data, .f = gam_model))  %>%
+      dplyr::select(ID, model, GAM) %>% unnest
     )
 
     rsquareTable <- rasts[, c(68, 1:2)] %>%
       inner_join(.,rsquare) %>%
-      dplyr::select(x,y,model)
+      dplyr::select(x,y,model,GAM)
 
     shp <- read_sf(paste0(shpPath, 'mapa_mundi.shp')) %>%
       as('Spatial') %>%
       crop(extent(-180, 180, -50, 50))
     
     rsquare %>% 
-        bind_cols(., rasts[,1:2]) %>%
+        bind_cols(., rasts[,c(1,2)]) %>%
         ggplot(aes(x = x, y = y))  +
         geom_tile(aes(fill = model)) + 
         geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
         coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
         labs(x= 'Longitude', y = 'Latitude')
     
-    ggsave(paste0(modelPolynomial, crop, '/', names, '.png'))
-    
-    write.csv(x = rsquareTable, file = paste0(modelPolynomial, crop, '/',  names, '.csv'))
+    ggsave(paste0(modelPolynomial, crop, '/', names, '_pol.png'))
+
+
+    write.csv(x = rsquareTable, file = paste0(modelPolynomial, crop, '/',  names, '_pol.csv'))
     
     tmpRaster <- raster(nrow=1200,ncol=4320)
     extent(tmpRaster) <- extent(-180, 180, -50, 50)
@@ -148,6 +154,26 @@ calcModels <- function(crop, seasonCrop){
     resultRaster <- rasterize(rsquareTable, tmpRaster , rsquareTable$model)
     
     writeRaster(x = resultRaster, file = paste0(modelPolynomial, crop, '/', names, '.tif'), format="GTiff", overwrite=TRUE)
+
+    rsquare %>% 
+        filter(!is.na(GAM)) %>%
+        bind_cols(., rasts[,c(1,3)]) %>%
+        ggplot(aes(x = x, y = y))  +
+        geom_tile(aes(fill = model)) + 
+        geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
+        coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
+        labs(x= 'Longitude', y = 'Latitude')
+    
+    ggsave(paste0(modelPolynomial, crop, '/', names, '_GAM.png'))
+
+    write.csv(x = rsquareTable, file = paste0(modelPolynomial, crop, '/',  names, '_GAM.csv'))
+    
+    tmpRaster <- raster(nrow=1200,ncol=4320)
+    extent(tmpRaster) <- extent(-180, 180, -50, 50)
+    coordinates(rsquareTable) <- ~x+y
+    resultRaster <- rasterize(rsquareTable, tmpRaster , rsquareTable$model)
+    
+    writeRaster(x = resultRaster, file = paste0(modelPolynomial, crop, '/', names, '_GAM.tif'), format="GTiff", overwrite=TRUE)
   }
 }
 

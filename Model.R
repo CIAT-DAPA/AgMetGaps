@@ -3,7 +3,6 @@
 ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
 ## Packages
 ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
-#### Temporarily
 require(tidyverse)
 require(raster)
 require(rgdal)
@@ -11,15 +10,17 @@ require(ncdf4)
 require(rgeos)
 require(sf)
 require(mgcv)
-require(future)
-require(doFuture)
+# require(future)
+# require(doFuture)
 
 # =-=-=-=-=-=-=-=-=-= Routes
 rootPath <- '//dapadfs/Workspace_cluster_9/AgMetGaps/'
 calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
 climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
 IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
-modelsPath <- paste0(rootPath, '3_monthly_climate_variability/Models/')
+modelsPath <- paste0(rootPath, '3_monthly_climate_variability/models/')
+modelPolynomial <- paste0(modelsPath, 'polynomial/')
+modelGAM <- paste0(modelsPath, 'GAM/')
 shpPath <- paste0(rootPath, '0_general_inputs/shp/')
 
 # =-=-=-=-=-= Polynomial model -- Function 
@@ -48,10 +49,6 @@ gam_model <- function(.x,.y){
 }
 
 calcModels <- function(crop, seasonCrop){
-  # crop <- 'Maize'
-  # seasonCrop <- 'maize_major'
-  # g <- gc();  rm(g);  removeTmpFiles( h = 24)
-  
   # =-=-=-=-=-=-=-=-=-= Calendar (raster)
   calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
     stack() %>% 
@@ -65,8 +62,6 @@ calcModels <- function(crop, seasonCrop){
     crop(extent(-180, 180, -50, 50))
   
   for(i in 1:6){
-    # i <- 1
-    
     # =-=-=-=-=-= read climate data
     names <- strsplit(list.files(paste0(climatePath, crop))[i], ".nc$") %>%  unlist
     
@@ -119,7 +114,6 @@ calcModels <- function(crop, seasonCrop){
       left_join(., calend)
     
     # =-=-=-=-=-= Run one model 
-    #plan(multisession, workers = availableCores() - 3)
     system.time(
     rsquare <- proof %>%
       mutate(model = purrr::map2(.x = year_start, .y = data, .f = model) ) %>%
@@ -127,19 +121,10 @@ calcModels <- function(crop, seasonCrop){
       # mutate(GAM = purrr::map2(.x = year_start, .y = data, .f = gam_model))  %>%
       # dplyr::select(ID, model, GAM) %>% unnest
     )
-    #future:::ClusterRegistry("stop")
-    
-    # hist(rsquare$model)
-    # boxplot(rsquare$model)
-    # sum(rsquare$model > 0.5)
-    
+
     rsquareTable <- rasts[, c(68, 1:2)] %>%
       inner_join(.,rsquare) %>%
       dplyr::select(x,y,model)
-    
-    #hist(rsquare$GAM)
-    #boxplot(rsquare$GAM)
-    #sum(rsquare$GAM > 0.5)
 
     shp <- read_sf(paste0(shpPath, 'mapa_mundi.shp')) %>%
       as('Spatial') %>%
@@ -153,16 +138,16 @@ calcModels <- function(crop, seasonCrop){
         coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
         labs(x= 'Longitude', y = 'Latitude')
     
-    ggsave(paste0(modelsPath, crop, '/polynModel_', names, '.png'))
+    ggsave(paste0(modelPolynomial, crop, '/', names, '.png'))
     
-    write.csv(x = rsquareTable, file = paste0(modelsPath, crop, '/polynModel_',  names, '.csv'))
+    write.csv(x = rsquareTable, file = paste0(modelPolynomial, crop, '/',  names, '.csv'))
     
     tmpRaster <- raster(nrow=1200,ncol=4320)
     extent(tmpRaster) <- extent(-180, 180, -50, 50)
     coordinates(rsquareTable) <- ~x+y
     resultRaster <- rasterize(rsquareTable, tmpRaster , rsquareTable$model)
     
-    writeRaster(x = resultRaster, file = paste0(modelsPath, crop, '/polynModel_', names, '.tif'), format="GTiff", overwrite=TRUE)
+    writeRaster(x = resultRaster, file = paste0(modelPolynomial, crop, '/', names, '.tif'), format="GTiff", overwrite=TRUE)
   }
 }
 

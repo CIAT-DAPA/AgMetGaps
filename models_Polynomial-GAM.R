@@ -10,8 +10,6 @@ require(ncdf4)
 require(rgeos)
 require(sf)
 require(mgcv)
-# require(future)
-# require(doFuture)
 
 # =-=-=-=-=-=-=-=-=-= Routes
 rootPath <- '//dapadfs/Workspace_cluster_9/AgMetGaps/'
@@ -52,6 +50,7 @@ gam_model <- function(.x,.y){
     , error = function(e) {
        return(NA)
     } )
+  }
 
 calcModels <- function(crop, seasonCrop){
   # =-=-=-=-=-=-=-=-=-= Calendar (raster)
@@ -143,10 +142,10 @@ calcModels <- function(crop, seasonCrop){
         coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
         labs(x= 'Longitude', y = 'Latitude')
     
-    ggsave(paste0(modelPolynomial, crop, '/', names, '_pol.png'))
+    ggsave(paste0(modelPolynomial, crop, '/', names, '.png'))
 
 
-    write.csv(x = rsquareTable, file = paste0(modelPolynomial, crop, '/',  names, '_pol.csv'))
+    write.csv(x = rsquareTable, file = paste0(modelPolynomial, crop, '/',  names, '.csv'))
     
     tmpRaster <- raster(nrow=1200,ncol=4320)
     extent(tmpRaster) <- extent(-180, 180, -50, 50)
@@ -164,16 +163,16 @@ calcModels <- function(crop, seasonCrop){
         coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
         labs(x= 'Longitude', y = 'Latitude')
     
-    ggsave(paste0(modelPolynomial, crop, '/', names, '_GAM.png'))
+    ggsave(paste0(modelGAM, crop, '/', names, '.png'))
 
-    write.csv(x = rsquareTable, file = paste0(modelPolynomial, crop, '/',  names, '_GAM.csv'))
+    write.csv(x = rsquareTable, file = paste0(modelGAM, crop, '/',  names, '.csv'))
     
     tmpRaster <- raster(nrow=1200,ncol=4320)
     extent(tmpRaster) <- extent(-180, 180, -50, 50)
     coordinates(rsquareTable) <- ~x+y
     resultRaster <- rasterize(rsquareTable, tmpRaster , rsquareTable$model)
     
-    writeRaster(x = resultRaster, file = paste0(modelPolynomial, crop, '/', names, '_GAM.tif'), format="GTiff", overwrite=TRUE)
+    writeRaster(x = resultRaster, file = paste0(modelGAM, crop, '/', names, '.tif'), format="GTiff", overwrite=TRUE)
   }
 }
 

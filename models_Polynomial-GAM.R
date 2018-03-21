@@ -1,4 +1,5 @@
 ##### Climate relationship models with Gaps 
+rm(list=ls())
 
 ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
 ## Packages
@@ -17,12 +18,12 @@ calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/
 climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
 IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
 modelsPath <- paste0(rootPath, '3_monthly_climate_variability/models/')
-modelPolynomial <- paste0(modelsPath, 'polynomial/')
-modelGAM <- paste0(modelsPath, 'GAM/')
+modelPolyPath <- paste0(modelsPath, 'polynomial/')
+modelGAMpath <- paste0(modelsPath, 'GAM/')
 shpPath <- paste0(rootPath, '0_general_inputs/shp/')
 
 # =-=-=-=-=-= Polynomial model -- Function 
-model <- function(.x , .y){
+polynomial <- function(.x , .y){
   if(.x == 0){
     summary(lm(.y$yield ~ .y$value + I(.y$value^2)))$r.squared 
   }else{
@@ -32,8 +33,6 @@ model <- function(.x , .y){
 
 ### GAM
 gam_model <- function(.x,.y){ 
-  require(mgcv)
-  
   tryCatch( {
     
     if(.x == 0){
@@ -54,6 +53,8 @@ gam_model <- function(.x,.y){
 
 calcModels <- function(crop, seasonCrop){
   # =-=-=-=-=-=-=-=-=-= Calendar (raster)
+  # crop <- 'maize'
+  # seasonCrop <- 'maize_major'
   calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
     stack() %>% 
     crop(extent(-180, 180, -50, 50))
@@ -66,10 +67,11 @@ calcModels <- function(crop, seasonCrop){
     crop(extent(-180, 180, -50, 50))
   
   for(i in 1:6){
+    # i <- 1
     # =-=-=-=-=-= read climate data
     names <- strsplit(list.files(paste0(climatePath, crop))[i], ".nc$") %>%  unlist
     
-    print(paste0('Crop: ', crop, ' - Season: ', seasonCrop, ' - Variable: ', names))
+    print(paste0('Crop: ', crop, ' --- Season: ', seasonCrop, ' --- Variable: ', names))
     
     climate <- stack(x = list.files(paste0(climatePath, crop), full.names=T)[i] , bands= 1:31) %>% 
       flip(., direction = 2) %>%
@@ -117,62 +119,59 @@ calcModels <- function(crop, seasonCrop){
       nest(-ID) %>% 
       left_join(., calend)
     
-    # =-=-=-=-=-= Run one model 
+    # =-=-=-=-=-= Run polynomial and GAM model
     system.time(
-    rsquare <- proof %>%
-      mutate(model = purrr::map2(.x = year_start, .y = data, .f = model) ) %>%
-    #   dplyr::select(ID, model) %>% unnest
+    poly_GAM <- proof %>%
+      mutate(polynomial = purrr::map2(.x = year_start, .y = data, .f = polynomial) ) %>%
       mutate(GAM = purrr::map2(.x = year_start, .y = data, .f = gam_model))  %>%
-      dplyr::select(ID, model, GAM) %>% unnest
+      dplyr::select(ID, polynomial, GAM) %>% unnest
     )
 
-    rsquareTable <- rasts[, c(68, 1:2)] %>%
-      inner_join(.,rsquare) %>%
-      dplyr::select(x,y,model,GAM)
+    # =-=-=-=-=-= Join ID with lat, lon y models values
+    poly_GAM_table <- rasts[, c(68, 1:2)] %>%
+      inner_join(.,poly_GAM) %>%
+      dplyr::select(x,y,polynomial,GAM) %>%
+      filter(polynomial != 'NA' ) %>%
+      filter(GAM != 'NA' )
 
+    # =-=-=-=-=-= Making map result and save in .png
     shp <- read_sf(paste0(shpPath, 'mapa_mundi.shp')) %>%
       as('Spatial') %>%
       crop(extent(-180, 180, -50, 50))
-    
-    rsquare %>% 
+
+    poly_GAM %>% 
         bind_cols(., rasts[,c(1,2)]) %>%
         ggplot(aes(x = x, y = y))  +
-        geom_tile(aes(fill = model)) + 
+        geom_tile(aes(fill = polynomial)) + 
         geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
         coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
         labs(x= 'Longitude', y = 'Latitude')
     
-    ggsave(paste0(modelPolynomial, crop, '/', names, '.png'))
+    ggsave(paste0(modelPolyPath, crop, '/polynomial_', names, '.png'))
 
-
-    write.csv(x = rsquareTable, file = paste0(modelPolynomial, crop, '/',  names, '.csv'))
+    poly_GAM %>% 
+      bind_cols(., rasts[,c(1,2)]) %>%
+      ggplot(aes(x = x, y = y))  +
+      geom_tile(aes(fill = GAM)) + 
+      geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
+      coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
+      labs(x= 'Longitude', y = 'Latitude')
     
+    ggsave(paste0(modelGAMpath, crop, '/GAM_', names, '.png'))
+    
+    # =-=-=-=-=-=- Write result tables in csv
+    write.csv(x = poly_GAM_table, file = paste0(modelsPath, crop, '_poly_GAM_', names, '.csv'))
+    
+    # =-=-=-=-=-=- Rasterize tables and write raster in tiff
     tmpRaster <- raster(nrow=1200,ncol=4320)
     extent(tmpRaster) <- extent(-180, 180, -50, 50)
-    coordinates(rsquareTable) <- ~x+y
-    resultRaster <- rasterize(rsquareTable, tmpRaster , rsquareTable$model)
-    
-    writeRaster(x = resultRaster, file = paste0(modelPolynomial, crop, '/', names, '.tif'), format="GTiff", overwrite=TRUE)
+    coordinates(poly_GAM_table) <- ~x+y
 
-    rsquare %>% 
-        filter(!is.na(GAM)) %>%
-        bind_cols(., rasts[,c(1,3)]) %>%
-        ggplot(aes(x = x, y = y))  +
-        geom_tile(aes(fill = model)) + 
-        geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
-        coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
-        labs(x= 'Longitude', y = 'Latitude')
+    resultRaster <- rasterize(poly_GAM_table, tmpRaster , poly_GAM_table$polynomial)
+    writeRaster(x = resultRaster, file = paste0(modelPolyPath, crop, '/polynomial_', names, '.tif'), format="GTiff", overwrite=TRUE)
     
-    ggsave(paste0(modelGAM, crop, '/', names, '.png'))
-
-    write.csv(x = rsquareTable, file = paste0(modelGAM, crop, '/',  names, '.csv'))
-    
-    tmpRaster <- raster(nrow=1200,ncol=4320)
-    extent(tmpRaster) <- extent(-180, 180, -50, 50)
-    coordinates(rsquareTable) <- ~x+y
-    resultRaster <- rasterize(rsquareTable, tmpRaster , rsquareTable$model)
-    
-    writeRaster(x = resultRaster, file = paste0(modelGAM, crop, '/', names, '.tif'), format="GTiff", overwrite=TRUE)
+    resultRaster <- rasterize(poly_GAM_table, tmpRaster , poly_GAM_table$GAM)
+    writeRaster(x = resultRaster, file = paste0(modelGAMpath, crop, '/GAM_', names, '.tif'), format="GTiff", overwrite=TRUE)
   }
 }
 

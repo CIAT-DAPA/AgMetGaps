@@ -5,13 +5,13 @@ rm(list=ls())
 ## Packages
 ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
 suppressMessages(if(!require(tidyverse)){install.packages('tidyverse'); library(tidyverse)} else {library(tidyverse)})
-# require(tidyverse)
-require(raster)
-require(rgdal)
-require(ncdf4)
-require(rgeos)
-require(sf)
-require(mgcv)
+suppressMessages(if(!require(raster)){install.packages('raster'); library(raster)} else {library(raster)})
+suppressMessages(if(!require(rgdal)){install.packages('rgdal'); library(rgdal)} else {library(rgdal)})
+suppressMessages(if(!require(ncdf4)){install.packages('ncdf4'); library(ncdf4)} else {library(ncdf4)})
+suppressMessages(if(!require(rgeos)){install.packages('rgeos'); library(rgeos)} else {library(rgeos)})
+suppressMessages(if(!require(sf)){install.packages('sf'); library(sf)} else {library(sf)})
+suppressMessages(if(!require(mgcv)){install.packages('mgcv'); library(mgcv)} else {library(mgcv)})
+
 
 # =-=-=-=-=-=-=-=-=-= Routes
 rootPath <- '//dapadfs/Workspace_cluster_9/AgMetGaps/'

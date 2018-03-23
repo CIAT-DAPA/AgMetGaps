@@ -11,7 +11,7 @@ import arcpy
 # Check out any necessary licenses
 arcpy.CheckOutExtension("spatial")
 
-tmpDir = "D:\\ToBackup\\2018\\AgMetGapsProject\\tmpDir\\"
+tmpDir = "D:\\OneDrive - CGIAR\\2018\\AgMetGapsProject\\richness\\"
 
 datasetsDir = "\\\\dapadfs\\Workspace_cluster_9\\AgMetGaps\\3_monthly_climate_variability\\"
 
@@ -23,7 +23,7 @@ condition = "\"VALUE\" > 0.5"
 
 def rastersThreshold(dataset, crop, model):
     # Set the current workspace
-    if (model <> ""):
+    if model != "":
         arcpy.env.workspace = datasetsDir + dataset + "\\" + model + "\\" + crop
     else:
         arcpy.env.workspace = datasetsDir + dataset + "\\" + crop
@@ -41,10 +41,11 @@ def rastersThreshold(dataset, crop, model):
 
 
 for dataset in ["correlation", "GROC", "models"]:
+# for dataset in ["models"]:
     for crop in ["Maize", "Rice", "Wheat"]:
-        if (dataset == "models"):
-            # for model in ["polynomial", "GAM"]:
-            for model in ["polynomial"]:
+        if dataset == "models":
+            for model in ["polynomial", "GAM"]:
+            # for model in ["polynomial"]:
                 print "\n>>> Dataset > " + dataset + " --- Crop > " + crop + " --- Model > " + model
                 rastersThreshold(dataset, crop, model)
         else:

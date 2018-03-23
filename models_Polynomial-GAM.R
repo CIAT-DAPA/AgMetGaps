@@ -1,3 +1,7 @@
+# Polynomial models in this case, they are linear regression models with quadratic terms in the variables:
+# y = b0 + b1 * x1 + b2 * (x2)^2
+
+
 ##### Climate relationship models with Gaps 
 rm(list=ls())
 
@@ -78,11 +82,10 @@ calcModels <- function(crop, seasonCrop){
       flip(., direction = 2) %>%
       t()
     
-    crop(x = climate,extent(-180, 180, -50, 50))
+    # crop(x = climate,extent(-180, 180, -50, 50))
     extent(climate) <- extent(-180, 180, -50, 50)
     crs(climate) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
     
-    # rasterToPoints(climate[[1]]) %>% head # El valor que aparezca en las primeras filas es el NA que se toma para esa variable
     
     # =-=-=-=-=-=-= Stack with all information data
     rasts <- raster::stack(climate,iizumi,calendar) %>% 
@@ -120,7 +123,7 @@ calcModels <- function(crop, seasonCrop){
       nest(-ID) %>% 
       left_join(., calend)
     
-    # =-=-=-=-=-= Run polynomial and GAM model
+    # =-=-=-=-=-= Run Models (linear (Polynomial)  and GAM)
     system.time(
     poly_GAM <- proof %>%
       mutate(polynomial = purrr::map2(.x = year_start, .y = data, .f = polynomial) ) %>%
@@ -179,3 +182,45 @@ calcModels <- function(crop, seasonCrop){
 calcModels('Maize', 'maize_major')
 calcModels('Rice', 'rice_major')
 calcModels('Wheat', 'wheat_spring')
+
+
+
+
+
+
+
+# =-=-=-=-=-=-=-=-=-= results summary 
+
+
+proof <- list.files(modelsPath, pattern = '.csv$', full.names = TRUE) %>% 
+  as.tibble() %>% 
+  mutate(only_names = list.files(modelsPath, pattern = '.csv$')) %>% 
+  mutate(data =  purrr::map(.x = value, .f =  read.csv)) %>%
+  select(-value) %>% 
+  separate(only_names, c("Crop", "value"), '_poly_GAM_') %>% 
+  separate( value , c("Var"), '.csv') %>% 
+  unite('var', c('Crop', 'Var')) %>%  unnest() %>% 
+  mutate(dif = ifelse((GAM - polynomial)>0, 1, 0)) 
+
+
+proof %>%
+  ggplot(aes(x = polynomial, y = GAM)) + geom_point(aes(colour = as.factor(dif))) +
+  facet_grid(~var) + 
+  theme_bw()
+
+ggsave(paste0(modelsPath, 'test.png'), width = 15, height = 4)
+
+
+
+proof %>% 
+  select(var, polynomial, GAM) %>% 
+  gather(models, value, -var) %>% 
+  ggplot(aes(x =  var, y = value)) + geom_boxplot(aes(fill =  models)) +theme_bw() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(x = '', y = 'R^2')
+
+ggsave(paste0(modelsPath, 'Comparison.png'), width = 10, height = 7)
+
+
+
+
+

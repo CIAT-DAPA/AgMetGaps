@@ -1,7 +1,6 @@
 # =-=-=-=  2.2. Yield gap vs Clima -- Climate relationship models with Gaps.
 #               (Spatial models with geographical poderation).
 
-rm(list=ls())
 
 ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
 ## Packages
@@ -28,8 +27,8 @@ shpPath <- paste0(rootPath, '0_general_inputs/shp/')
 
 
 # =-=-=-= Preliminar parameters 
-crop <- 'Wheat'
-seasonCrop <- 'wheat_spring'
+crop <- 'Rice'
+seasonCrop <- 'rice_major'
 
 
 i <- 1
@@ -58,6 +57,17 @@ extent(climate) <- extent(-180, 180, -50, 50)
 crs(climate) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
 
+test <- rasterToPoints(climate)
+
+
+test %>% summary
+
+
+sum(test[,3] == -999)
+
+
+
+
 
 
 
@@ -67,33 +77,32 @@ crs(climate) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0
 
 # Temporarily 
 shp_colombia <- st_read(dsn = paste0(shpPath, 'mapa_mundi.shp')) %>%
-  as('Spatial') %>% crop(extent(-180, 180, -50, 50))
+  as('Spatial') %>% crop(extent(-180, 180, -50, 50)) 
+
+# shp_colombia %>% data.frame() %>% filter(REGION == 'Sub Saharan Africa')
+
+adm <- shp_colombia[shp_colombia$REGION %in% c( 'Sub Saharan Africa'),] 
+
+#plot(adm)
+
+shp_colombia$REGION %>% unique %>% as.tibble()
 
 
-library(maptools)
-
-adm <- getData('GADM', country='AUS', level=1)
-adm %>% plot 	
-
-plot(iizumi) 
-plot(adm , add = TRUE)
 
 
-# proof <- stack(climate, iizumi) %>% rasterToPoints() 
-# names(proof) <-  c('long', 'lat', 'climate', 'yield')
-
-# proof <- proof[-which( proof[, 4] %>%  is.na()), ]
-# proof <-  proof[-which( proof[, 3] %>%  is.na()), ]
-
-system.time(
-  Rp1 <-  stack(climate, iizumi) %>% crop(., adm) %>%  rasterToPolygons(., na.rm	= TRUE)  
-)
-
-Data.scaled <- scale(as.data.frame(Rp1)) # sd
+# library(maptools)
+# adm <- raster::getData('GADM', country='AUS', level=1)
+# ccodes()
 
 
-Rp2 <- stack(climate, iizumi) %>% crop(., adm) %>% rasterToPoints()
-Rp2 <- Rp2[-which(Rp2[,4] %>% is.na()), ] %>% data.frame()
+#plot(iizumi) 
+#plot(adm , add = TRUE)
+
+
+Rp2 <- stack(climate, iizumi) %>% crop(., adm) %>% rasterToPoints() # 
+Rp2 <- Rp2[-which(Rp2[,4] %>% is.na(.)) , ] %>% data.frame()
+# Rp2 <- Rp2[-which(Rp2[,3] == -999) , ] %>% data.frame()
+
 Rp2 <- SpatialPointsDataFrame(coords = Rp2[,1:2], data = Rp2[,3:4])
 
 
@@ -102,10 +111,6 @@ Rp2 <- SpatialPointsDataFrame(coords = Rp2[,1:2], data = Rp2[,3:4])
 linmod <- lm(yield_1981_gap~layer,data=Rp2) # Store the regression model to use in a plot later
 summary(linmod)$adj.r.squared
 
-
-
-plot(yield_1981_gap~layer,data=Rp2,col = 'red', pch = 19)
-abline(linmod )
 
 
 
@@ -119,15 +124,66 @@ summary(gam_mod)$dev.expl
 
 # =-=-=-=
 
-plot(adm)
-plot(Rp2, pch=16, col=adjustcolor('navyblue',alpha.f=0.5),add=TRUE)
-
-DM <- gw.dist(dp.locat=coordinates(Rp2))
+#plot(adm)
+#plot(Rp2, pch=16, col=adjustcolor('navyblue',alpha.f=0.5),add=TRUE)
 
 
+# compute the distances between the points on the grid where βj(u,v) 
+DM <- gw.dist(dp.locat=coordinates(Rp2), p =  3)
 
-grd <- SpatialGrid(GridTopology(c(112,160), c(-56,-8), c(20,20)))
 
-system.time(gwr.res <- gwr.basic(yield_1981_gap~layer, data=Rp2,  bw=100, dMat=DM,kernel='gaussian'))
+# conectar con el resto
+bw.gwr.1 <- bw.gwr(yield_1981_gap ~ layer,
+                   data = Rp2, approach = "AICc",
+                   kernel = "gaussian", dMat = DM, adaptive = TRUE)
+print(bw.gwr.1)
+# 20
+
+system.time(gwr.res <- gwr.basic(  formula = yield_1981_gap~layer, data = Rp2, bw=50, dMat=DM,  kernel='gaussian'))
+# 15.55297 min 
+
+
+gwr.res$GW.diagnostic$gwR2.adj
+
+gwr.res$SDF$Local_R2 %>% boxplot
+
+
+Coords <- coordinates(gwr.res$SDF) %>%
+  as_tibble %>% 
+  rename(long = x, lat = y)
+
+
+df_data <- bind_cols(as_tibble(gwr.res$SDF), Coords)
+
+
+
+
+rasterize_masa <-  function(var, data, raster){
+  points <- data %>%
+    dplyr::select(long, lat) %>%
+    data.frame 
+  
+  
+  vals <- data %>%
+    dplyr::select(!!var) %>%
+    magrittr::extract2(1)
+  
+  y <- rasterize(points, raster, vals, fun = sum)
+  return(y)}
+
+
+p <- rasterize_masa('residual', df_data , iizumi %>% crop(., adm))
+
+#plot(p)
+#plot(adm, add = T)
+
+
+
+
+ggplot(df_data, aes(long, lat, fill = Local_R2)) + 
+  geom_tile() +  
+  geom_polygon(data = adm, aes(x=long, y = lat, group = group), color = "gray", fill=NA) + 
+  theme_bw() + coord_fixed()
+
 
 

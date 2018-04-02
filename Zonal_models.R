@@ -27,8 +27,8 @@ shpPath <- paste0(rootPath, '0_general_inputs/shp/')
 
 
 # =-=-=-= Preliminar parameters 
-crop <- 'Rice'
-seasonCrop <- 'rice_major'
+crop <- 'Wheat'
+seasonCrop <- 'wheat_spring'
 
 
 i <- 1
@@ -185,5 +185,14 @@ ggplot(df_data, aes(long, lat, fill = Local_R2)) +
   geom_polygon(data = adm, aes(x=long, y = lat, group = group), color = "gray", fill=NA) + 
   theme_bw() + coord_fixed()
 
+
+
+
+
+print(paste0('Crop: ', crop, ' --- Season: ', seasonCrop, ' --- Variable: ', names))
+print(bw.gwr.1)
+
+ggsave(paste0(modelsPath, 'Wheat_FP_SSA_16.png'))
+df_data %>% write.csv(paste0(modelsPath, 'Wheat_FP_SSA_16.csv'))
 
 

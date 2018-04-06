@@ -2,8 +2,8 @@
 
 ## first part
 
-# fp: folder to make
-
+# fp: folder to make :p
+asdasdasd
 mkdirs <- function(fp) {
   
   if(!file.exists(fp)) {

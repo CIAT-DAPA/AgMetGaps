@@ -62,6 +62,157 @@ purrr::pmap(.l = list(sowing_window,
 rm(list = ls())
 
 
+###################
+## code to make time series climate from chirps for each point in the calendar polygons
+### a partir de aca es que funciona
+
+library(lubridate)
+library(tidyverse)
+library(raster)
+library(future)
+library(velox)
+library(sf)
+library(tictoc)
+library(future.apply)
+
+
+chirps_path <- '/mnt/data_cluster_4/observed/gridded_products/chirps/daily/' 
+chirps_file <- list.files(chirps_path, pattern = '.tif$', full.names = T) 
+points_path <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/spatial_points/Rice' ## switch between Maize, Rice and Wheat
+points_file <- list.files(points_path, pattern = '.geojson$', full.names = T) 
+out_file <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/precipitation_points/daily_chirps_csv/' 
+
+geo_files <- sf::st_read(dsn = points_file)  
+
+raster_files <- chirps_file %>%
+  data_frame(file = .) %>%
+  mutate(date = purrr::map(.x = file, .f = extract_date)) %>%
+  tidyr::unnest() %>%
+  mutate(year = lubridate::year(date),
+         month = lubridate::month(date),
+         day = lubridate::day(date))
+
+# x <- raster_files %>%
+#   filter(year <= 1982) 
+
+
+x <- raster_files %>%
+  # filter(year <= 1981, month == 1) %>%
+  filter(year <= 2016) %>%
+  pull(file)
+
+
+# x <- x %>%
+#   base::split(.$year, drop = TRUE) %>%
+#   purrr::map(.f = filter, month == 1) %>%
+#   purrr::map(.f = pull, file)
+
+
+# p <- sf::st_read(dsn = points_file)
+
+
+## cargar los puntos que se van a utilizar para extraer
+
+
+# local_cpu <- rep("localhost", availableCores() - 1)
+# external_cpu <- rep("caribe.ciat.cgiar.org", 8)  # server donde trabaja Alejandra
+# external_cpu <- rep("climate.ciat.cgiar.org", each = 10)
+
+# workers <- c(local_cpu, external_cpu)
+# options(future.globals.maxSize= 891289600)
+options(future.globals.maxSize = 31912896000)
+# plan(multisession, workers = 10)
+
+
+
+mean_point <- function(x){
+  
+  x[x<0] <- NA
+  mean(x, na.rm = T)
+  
+}
+
+distribute_load <- function(x, n) {
+  assertthat::assert_that(assertthat::is.count(x),
+                          assertthat::is.count(n),
+                          isTRUE(x > 0),
+                          isTRUE(n > 0))
+  if (n == 1) {
+    i <- list(seq_len(x))
+  } else if (x <= n) {
+    i <- as.list(seq_len(x))
+  } else {
+    j <- as.integer(floor(seq(1, n + 1 , length.out = x + 1)))
+    i <- list()
+    for (k in seq_len(n)) {
+      i[[k]] <- which(j == k)
+    }
+  }
+  
+  i
+}
+
+files <- distribute_load(x = 25000, n = 10)
+
+
+plan(sequential)
+plan(list(tweak(multisession, workers = 3), tweak(multisession, workers = 4)))
+# tic('parallel map raster')
+# vx_raster <- purrr::map(.x = file, .f = ~future(raster(.x))) %>%
+#   future::values() %>%
+#   raster::stack()
+# vx_raster <- velox(vx_raster)
+# toc()  ## tomo 4.5 mins
+# 
+
+## haciendo load balancing
+
+l = distribute_load(x = length(file), n = 18)
+
+files <- purrr::map(.x = l, .f = function(l, x) x[l], file)
+
+tic('parallel balancing velox')
+# vx_raster <- purrr::map(.x = files, .f = ~future(velox(raster::stack(.x)))) %>%
+vx_raster <- future.apply::future_lapply(X = files, FUN = function(x) velox(raster::stack(x))) %>%
+  # future::values() %>%
+  velox::velox()
+toc() 
+
+
+
+tic('parallel balancing velox')
+# vx_raster <- purrr::map(.x = files, .f = ~future(velox(raster::stack(.x)))) %>%
+vx_raster <- future.apply::future_lapply(X = files, FUN = stack_future, geo_files) # %>%
+# future::values() %>%
+# velox::velox()
+toc() 
+
+vx_raster <- vx_raster %>%
+  purrr::reduce(left_join, by = c('id', 'lat', 'long'))
+write_csv(values, path = paste0(out_file, daily_day, '.csv'))
+out_file <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/precipitation_points/weather_stations/'
+type_crop <- basename(points_path)
+
+# make_fst <- function(x){
+#   
+#   # x <- csv_files[1]
+#   date <- basename(x)
+#   path <- stringr::str_replace_all(x, pattern = date, replacement  = '')
+#   
+#   date <- stringr::str_replace_all(date, pattern = ".csv", replacement  = '')
+#   
+#   x <- data.table::fread(x) %>%
+#     as.data.frame()
+#   
+#   # x <- as.data.frame(x)
+#   
+#   fst::write.fst(x, paste0(path, date, ".fst"))
+# }
+fst::write.fst(vx_raster, paste0(out_file, type_crop, '.fst'))
+write_csv(vx_raster, path = paste0(out_file, type_crop, '.csv'))
+
+
+
 ###
 ## code to make time series climate from chirps for each point in the calendar polygons
 
@@ -130,6 +281,29 @@ toc()
 
 
 # strategy <- "future::multisession"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #####

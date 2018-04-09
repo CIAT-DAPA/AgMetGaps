@@ -102,28 +102,9 @@ x <- raster_files %>%
   pull(file)
 
 
-# x <- x %>%
-#   base::split(.$year, drop = TRUE) %>%
-#   purrr::map(.f = filter, month == 1) %>%
-#   purrr::map(.f = pull, file)
-
-
-# p <- sf::st_read(dsn = points_file)
-
-
-## cargar los puntos que se van a utilizar para extraer
-
-
-# local_cpu <- rep("localhost", availableCores() - 1)
-# external_cpu <- rep("caribe.ciat.cgiar.org", 8)  # server donde trabaja Alejandra
-# external_cpu <- rep("climate.ciat.cgiar.org", each = 10)
-
-# workers <- c(local_cpu, external_cpu)
 # options(future.globals.maxSize= 891289600)
-options(future.globals.maxSize = 31912896000)
+options(future.globals.maxSize = 81912896000)
 # plan(multisession, workers = 10)
-
-
 
 mean_point <- function(x){
   
@@ -152,40 +133,87 @@ distribute_load <- function(x, n) {
   i
 }
 
-files <- distribute_load(x = 25000, n = 10)
-
-
 plan(sequential)
-plan(list(tweak(multisession, workers = 3), tweak(multisession, workers = 4)))
-# tic('parallel map raster')
-# vx_raster <- purrr::map(.x = file, .f = ~future(raster(.x))) %>%
-#   future::values() %>%
-#   raster::stack()
-# vx_raster <- velox(vx_raster)
-# toc()  ## tomo 4.5 mins
-# 
+plan(list(tweak(multisession, workers = 2), tweak(multisession, workers = 5)))
 
 ## haciendo load balancing
 
-l = distribute_load(x = length(file), n = 18)
+extract_velox <- function(file, points, out_file){
+  
+  file <- x
+  points <- geo_files
+
+l = distribute_load(x = length(file), n = 500)
 
 files <- purrr::map(.x = l, .f = function(l, x) x[l], file)
 
+stack_future <- function(x, geo_files) {
+  
+  # x <- files[[1]]
+  # 
+  
+  stk_vx <- future.apply::future_lapply(X = x, FUN = raster) %>%
+    raster::stack(x) %>%
+    velox::velox()
+  
+  
+  
+  # x <- lapply(X = x, FUN = raster) %>%
+  #   raster::stack(x) %>%
+  #   velox::velox()
+  
+  
+  date_raster <- purrr::map(.x =  x, .f = extract_date) %>%
+    purrr::map(.x = ., .f = as_tibble) %>%
+    bind_rows() %>%
+    pull()
+  
+  coords <- geo_files  %>% 
+    st_set_geometry(NULL) %>%
+    dplyr::select(lat, long) %>%
+    as_tibble()
+  
+  values <-  stk_vx$extract(geo_files, fun = mean_point) %>%
+    tbl_df() %>%
+    purrr::set_names(date_raster) %>%
+    mutate(id = 1:nrow(.))
+  
+  
+  
+  # y <- list()
+  values <- bind_cols(coords, values) %>%
+    dplyr::select(id, everything()) # %>%
+  # tidyr::gather(date, precip, -id, -lat, -long)
+  # %>%
+  # tidyr::nest(-id, -lat, -long)
+  
+  rm(stk_vx)
+  rm(date_raster)
+  rm(coords)
+  gc(reset = T)
+  
+  return(values )
+  
+  
+}
+
 tic('parallel balancing velox')
-# vx_raster <- purrr::map(.x = files, .f = ~future(velox(raster::stack(.x)))) %>%
-vx_raster <- future.apply::future_lapply(X = files, FUN = function(x) velox(raster::stack(x))) %>%
-  # future::values() %>%
-  velox::velox()
-toc() 
-
-
-
-tic('parallel balancing velox')
-# vx_raster <- purrr::map(.x = files, .f = ~future(velox(raster::stack(.x)))) %>%
 vx_raster <- future.apply::future_lapply(X = files, FUN = stack_future, geo_files) # %>%
-# future::values() %>%
-# velox::velox()
 toc() 
+
+
+# tic('parallel balancing velox')
+# 
+# vx_raster <- future.apply::future_lapply(X = files, FUN = function(x) velox(raster::stack(x))) %>%
+#   velox::velox()
+# toc() 
+
+
+
+}
+
+
+
 
 vx_raster <- vx_raster %>%
   purrr::reduce(left_join, by = c('id', 'lat', 'long'))

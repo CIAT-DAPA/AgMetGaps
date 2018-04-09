@@ -217,7 +217,7 @@ toc()
 
 vx_raster <- vx_raster %>%
   purrr::reduce(left_join, by = c('id', 'lat', 'long'))
-write_csv(values, path = paste0(out_file, daily_day, '.csv'))
+# write_csv(values, path = paste0(out_file, daily_day, '.csv'))
 out_file <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/precipitation_points/weather_stations/'
 type_crop <- basename(points_path)
 

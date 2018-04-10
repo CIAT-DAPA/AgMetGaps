@@ -133,8 +133,6 @@ distribute_load <- function(x, n) {
   i
 }
 
-plan(sequential)
-plan(list(tweak(multisession, workers = 2), tweak(multisession, workers = 5)))
 
 ## haciendo load balancing
 
@@ -143,7 +141,7 @@ extract_velox <- function(file, points, out_file){
   file <- x
   points <- geo_files
 
-l = distribute_load(x = length(file), n = 500)
+l = distribute_load(x = length(file), n = 530)
 
 files <- purrr::map(.x = l, .f = function(l, x) x[l], file)
 
@@ -196,6 +194,10 @@ stack_future <- function(x, geo_files) {
   
   
 }
+
+plan(sequential)
+plan(list(tweak(multisession, workers = 2), tweak(multisession, workers = 5)))
+
 
 tic('parallel balancing velox')
 vx_raster <- future.apply::future_lapply(X = files, FUN = stack_future, geo_files) # %>%

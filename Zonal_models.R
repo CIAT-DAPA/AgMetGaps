@@ -182,3 +182,247 @@ ggsave(paste0(modelsPath, 'Wheat_FP_SSA_16.png'))
 df_data %>% write.csv(paste0(modelsPath, 'Wheat_FP_SSA_16.csv'))
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+# Models with panel data
+
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+
+
+## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
+## Packages
+## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
+suppressMessages(if(!require(tidyverse)){install.packages('tidyverse'); library(tidyverse)} else {library(tidyverse)})
+suppressMessages(if(!require(raster)){install.packages('raster'); library(raster)} else {library(raster)})
+suppressMessages(if(!require(rgdal)){install.packages('rgdal'); library(rgdal)} else {library(rgdal)})
+suppressMessages(if(!require(ncdf4)){install.packages('ncdf4'); library(ncdf4)} else {library(ncdf4)})
+suppressMessages(if(!require(rgeos)){install.packages('rgeos'); library(rgeos)} else {library(rgeos)})
+suppressMessages(if(!require(sf)){install.packages('sf'); library(sf)} else {library(sf)})
+# Geographically Weighted Regression
+suppressMessages(if(!require(GWmodel)){install.packages('GWmodel'); library(GWmodel)} else {library(GWmodel)}) # 
+suppressMessages(if(!require(plm)){install.packages('plm'); library(plm)} else {library(plm)}) # 
+
+
+
+
+
+
+
+# =-=-=-=-=-=-=-=-=-= Routes
+rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
+calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
+climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
+IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
+modelsPath <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
+shpPath <- paste0(rootPath, '0_general_inputs/shp/')
+
+
+
+
+# =-=-=-= Preliminar parameters 
+crop <- 'Maize'
+seasonCrop <- 'maize_major'
+
+
+i <- 1
+names <- strsplit(list.files(paste0(climatePath, crop))[i], ".nc$") %>%  unlist
+print(paste0('Crop: ', crop, ' --- Season: ', seasonCrop, ' --- Variable: ', names))
+
+
+
+# Temporarily st_read(dsn = paste0(shpPath, 'mapa_mundi.shp'))
+shp_colombia <- st_read(dsn = paste0(shpPath, 'all_countries.shp')) %>%
+  as('Spatial') %>% crop(extent(-180, 180, -50, 50)) 
+
+adm <- shp_colombia[shp_colombia$NAME == 'Colombia', ]
+
+# first idea: wheat automatization - i believe this crop run with all continent
+
+
+# shp_colombia$UNREG2 %>% unique %>% as.tibble() %>% View
+# adm <- shp_colombia[shp_colombia$UNREG2 %in%  c('Americas'),]
+
+
+iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE)[-1] %>% 
+  stack() %>% 
+  crop(extent(-180, 180, -50, 50))
+
+
+
+climate <- stack(x = list.files(paste0(climatePath, crop), full.names=T)[i] , bands= 2:31) %>% 
+  flip(., direction = 2) %>%
+  t()
+
+extent(climate) <- extent(-180, 180, -50, 50)
+crs(climate) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+
+
+
+
+
+#test <- rasterToPoints(climate)
+#test %>% summary
+#sum(test[,3] == -999)
+
+
+ad <- raster::getData('GADM', country='COL', level=1)
+
+ad$NAME_1
+
+
+idea <- rasterize(ad, iizumi[[1]]  %>% crop(., ad)  %>% mask(., ad), field = 'OBJECTID' )
+
+
+# =-=-=-=-=-=-=
+Rp1 <- stack(climate, iizumi) %>% crop(., ad)  %>% mask(., ad) 
+Rp <- stack(idea, Rp1) %>% rasterToPoints() 
+
+#Rp %>% as.tibble()
+#Rp_climate <- Rp[[1:30]] %>% setNames(paste0('y',1982:2011))
+#Rp_iizumi <- Rp[[31:60]] %>% setNames(paste0('y', 1982:2011))
+
+# plot(Rp_iizumi)
+
+
+test1  <- Rp %>% 
+  as.tibble() %>% 
+  mutate(id= 1:length(x)) %>%  
+  na.omit() %>% 
+  .[, c(ncol(.), 3 ,  1:2, 4:33)] %>%  setNames(c('id', 'polygon','x','y', paste0('y',1982:2011)) )  %>% 
+  gather(year, climate, 'y1982':'y2011') %>% 
+  separate(year,  c("key", "year"), "y") %>% 
+  dplyr::select(-key)
+
+test <-   Rp %>% as.tibble() %>% 
+  mutate(id= 1:length(layer.1)) %>%  
+  na.omit() %>%
+  .[, c(ncol(.), 3, 1:2, 34:(ncol(.)-1))] %>% 
+  setNames(c('id','polygon', 'x','y', paste0('y',1982:2011)) )%>% 
+  gather(year, iizumi, 'y1982':'y2011') %>% 
+  separate(year,  c("key", "year"), "y") %>% 
+  dplyr::select(-key)
+
+
+sp_data <- ad
+
+
+coor <-  coordinates(ad) %>% as.tibble() %>% setNames(c('x', 'y')) %>% mutate(polygon = 1:length(x))
+
+# sp_data <- rasterToPolygons(Rp_iizumi)
+
+# test1 <- Rp_climate %>% rasterToPoints() 
+# test <- Rp_iizumi %>% rasterToPoints() 
+
+
+#test <- test %>% 
+#  as.tibble %>%
+#  mutate(id = 1:length(x)) %>% 
+#  gather(year, iizumi, 'y1982':'y2011') %>% 
+#  separate(year,  c("key", "year"), "y") %>% 
+#  dplyr::select(-key)
+
+#test1 <- test1 %>% 
+#  as.tibble %>%
+#  mutate(id = 1:length(x)) %>% 
+#  gather(year, climate, 'y1982':'y2011') %>% 
+#  separate(year,  c("key", "year"), "y") %>% 
+#  dplyr::select(-key)
+
+
+# proof <- inner_join(test, test1 %>% dplyr::select(-x,-y), by = c('id', 'polygon','year'))
+
+
+proof <- inner_join(test, test1 %>% dplyr::select(-x,-y), by = c('id', 'polygon','year')) %>% 
+  group_by(polygon, year) %>% summarise(iizumi = mean(iizumi), climate =  mean(climate)) %>% 
+  ungroup() 
+
+
+
+
+
+
+
+proof <- proof %>% nest(-polygon) %>% 
+  inner_join(., coor, by = 'polygon') %>% unnest
+
+
+
+
+
+
+
+
+states.m <- list(x= proof%>% dplyr::select(x),   y =  proof%>% dplyr::select(y),  
+                 range = extent(ad) %>% as.vector(), names = proof %>% dplyr::select(polygon) )
+
+yrs <- 1982:2011
+time <- as.POSIXct(paste(yrs, "-01-01", sep = ""))
+
+
+
+
+### 
+
+tst <- proof %>% dplyr::select(polygon) %>% unique  %>% pull(1)
+sp_data <- ad[ad@data$OBJECTID %in% tst,]
+
+
+
+plot(sp_data)
+
+
+
+Produc.st <-spacetime::STFDF(sp = sp_data,  time = time, data = proof)
+
+
+zz <- plm(log(iizumi) ~ log(climate),
+          data = as.data.frame(Produc.st), index = c("polygon", "year"))
+
+dim(as.data.frame(Produc.st)) # 253890     42
+
+summary(zz)$r.squared
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

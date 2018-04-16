@@ -580,6 +580,7 @@ prueba <- function(chirps_file, start_plant, end_plant, points_coord){
     ##################
     ####################
     ## code to make time series climate from chirps for each point in the calendar polygons
+    ### a partir de aca es que funciona
     
     library(lubridate)
     library(tidyverse)
@@ -598,14 +599,15 @@ prueba <- function(chirps_file, start_plant, end_plant, points_coord){
     
     
     
-    chirps_path <- '/mnt/data_cluster_4/observed/gridded_products/chirps/daily/'
-    chirps_file <- list.files(chirps_path, pattern = '.tif$', full.names = T)
-    points_path <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/spatial_points/Maize'
-    points_file <- list.files(points_path, pattern = '.geojson$', full.names = T)
-    out_file <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/precipitation_points/daily_chirps_csv/'
+    chirps_path <- '/mnt/data_cluster_4/observed/gridded_products/chirps/daily/' 
+    chirps_file <- list.files(chirps_path, pattern = '.tif$', full.names = T) 
+    # points_path <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/spatial_points/Maize'
+    points_path <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/spatial_points/Rice' 
+    points_file <- list.files(points_path, pattern = '.geojson$', full.names = T) 
+    out_file <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/precipitation_points/daily_chirps_csv/' 
     
     
-    geo_files <- sf::st_read(dsn = points_file) 
+    geo_files <- sf::st_read(dsn = points_file)  
     
     
     raster_files <- chirps_file %>%
@@ -667,8 +669,6 @@ prueba <- function(chirps_file, start_plant, end_plant, points_coord){
       mean(x, na.rm = T)
       
     }
-    distribute_load(x = 25000, n = 10)
-    
     
     distribute_load <- function(x, n) {
       assertthat::assert_that(assertthat::is.count(x),
@@ -690,7 +690,11 @@ prueba <- function(chirps_file, start_plant, end_plant, points_coord){
       i
     }
     
-    stack_future(files[[1]], geo_files)
+    files <- distribute_load(x = 25000, n = 10)
+    
+    
+
+    # stack_future(files[[1]], geo_files)
     stack_future <- function(x, geo_files) {
       
       # x <- files[[1]]
@@ -744,7 +748,7 @@ prueba <- function(chirps_file, start_plant, end_plant, points_coord){
     y %>%
       purrr::reduce(left_join, by = c('id', 'lat', 'long'))
     
-    
+    ### esta es la funcion que trabaja con el code
     extract_velox <- function(file, points, out_file){
       
       file <- x
@@ -790,12 +794,13 @@ prueba <- function(chirps_file, start_plant, end_plant, points_coord){
       # plan(multisession, workers = 10)
       plan(sequential)
       plan(list(tweak(multisession, workers = 3), tweak(multisession, workers = 4)))
-      tic('parallel map raster')
-      vx_raster <- purrr::map(.x = file, .f = ~future(raster(.x))) %>%
-        future::values() %>%
-        raster::stack()
-      vx_raster <- velox(vx_raster)
-      toc()  ## tomo 4.5 mins
+      # tic('parallel map raster')
+      # vx_raster <- purrr::map(.x = file, .f = ~future(raster(.x))) %>%
+      #   future::values() %>%
+      #   raster::stack()
+      # vx_raster <- velox(vx_raster)
+      # toc()  ## tomo 4.5 mins
+      # 
       
       ## haciendo load balancing
       
@@ -1253,4 +1258,116 @@ prueba <- function(chirps_file, start_plant, end_plant, points_coord){
     plot(mascara, add = T)  
     pr1 <- projectRaster(z, crs='+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0')
     
+    
+}
+}
+}}}
+
+
+    
+############### modelos diferentes
+
+rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
+calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
+climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
+IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
+# modelsPath <- paste0(rootPath, '3_monthly_climate_variability/models_02/')
+# modelPolyPath <- paste0(modelsPath, 'polynomial/')
+# modelGAMpath <- paste0(modelsPath, 'GAM/')
+shpPath <- paste0(rootPath, '0_general_inputs/shp/')
+
+crop <- 'Maize'
+seasonCrop <- 'maize_major'
+
+phenology <- c('Planting', 'Flowering', 'Harvest')
+
+calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
+  raster::stack() %>% 
+  raster::crop(extent(-180, 180, -50, 50))
+
+gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE) %>% 
+  raster::stack() %>% 
+  raster::crop(extent(-180, 180, -50, 50))
+
+number_years <- length(names(gap_iizumi))
+
+points <- rasterToPoints(gap_iizumi)[, c(1,2)] %>%
+  tbl_df() %>%
+  dplyr::rename(lat = y, long = x) %>%
+  st_as_sf(coords = c("long", "lat"))
+
+values_point <- rasterToPoints(gap_iizumi)[, 3] %>%
+  tbl_df() %>%
+  rename(gap = value)
+## i = 1
+extract_trimestre <- function(x){
+  # list.files(paste0(climatePath, crop), full.names=T)
+  x %>%
+    basename() %>% 
+    stringr::str_replace(pattern = "[0-9]+.nc$", replacement = '')
+}
+
+read_bands <- function(x, n_bands){
+  
+  stack(x, bands = 1:n_bands) 
+  
+}
+
+x <- list.files(paste0(climatePath, crop), full.names = T)
+
+## aplicar plan future
+
+stk_vx <- future.apply::future_lapply(X = x, FUN = read_bands, number_years) %>%
+  future.apply::future_lapply(FUN = velox) 
+
+## es para averiguar que trimestre es
+
+type <- list.files(paste0(climatePath, crop), full.names = T) %>%
+  data_frame(path = .) %>%
+  mutate(type = basename(path),
+         trimestre = extract_trimestre(path)) %>%
+  dplyr::select(trimestre, everything()) %>%
+  pull(trimestre)
+
+
+## crear funcion para extraer 
+
+mean_point <- function(x){
+  
+  x[x<0] <- NA
+  mean(x, na.rm = T)
+  
+}
+values_trimestre <- function(stk_vx, variable, spatial_points){
+  
+  # stk_vx[[1]]
+  # variable <- type[1]
+  # spatial_points <- points
+  
+  values <-  stk_vx[[1]]$extract_points(spatial_points) %>%
+    tbl_df() %>%
+    purrr::set_names(date_raster) %>%
+    mutate(id = 1:nrow(.))
+  
+  coords <- spatial_points %>%
+    st_coordinates() %>%
+    as_tibble() %>%
+    dplyr::select(X, Y) %>%
+    rename(long = X, lat = Y)
+  
+  date <- 1981:2011
+  
+  z <- bind_cols(coords, values, values_point) %>%
+    rename_at(vars(contains('V')), funs(c(!!date))) %>%
+    mutate(id = 1:nrow(.)) %>%
+    gather(year, !!variable, -lat, -long, -id, -gap) %>%
+    mutate(variable = variable) 
+    
+    
+}
+
+
+## id, lat, long, climate, year, trimestre, value
+
+
     

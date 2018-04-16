@@ -3,26 +3,31 @@
 
 
 ##### Climate relationship models with Gaps 
-rm(list=ls())
-
 ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
 ## Packages
 ## =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= ##
-suppressMessages(if(!require(tidyverse)){install.packages('tidyverse'); library(tidyverse)} else {library(tidyverse)})
-suppressMessages(if(!require(raster)){install.packages('raster'); library(raster)} else {library(raster)})
-suppressMessages(if(!require(rgdal)){install.packages('rgdal'); library(rgdal)} else {library(rgdal)})
-suppressMessages(if(!require(ncdf4)){install.packages('ncdf4'); library(ncdf4)} else {library(ncdf4)})
-suppressMessages(if(!require(rgeos)){install.packages('rgeos'); library(rgeos)} else {library(rgeos)})
-suppressMessages(if(!require(sf)){install.packages('sf'); library(sf)} else {library(sf)})
-suppressMessages(if(!require(mgcv)){install.packages('mgcv'); library(mgcv)} else {library(mgcv)})
+# suppressMessages(if(!require(tidyverse)){install.packages('tidyverse'); library(tidyverse)} else {library(tidyverse)})
+# suppressMessages(if(!require(raster)){install.packages('raster'); library(raster)} else {library(raster)})
+# suppressMessages(if(!require(rgdal)){install.packages('rgdal'); library(rgdal)} else {library(rgdal)})
+# suppressMessages(if(!require(ncdf4)){install.packages('ncdf4'); library(ncdf4)} else {library(ncdf4)})
+# suppressMessages(if(!require(rgeos)){install.packages('rgeos'); library(rgeos)} else {library(rgeos)})
+# suppressMessages(if(!require(sf)){install.packages('sf'); library(sf)} else {library(sf)})
+# suppressMessages(if(!require(mgcv)){install.packages('mgcv'); library(mgcv)} else {library(mgcv)})
 
+library(tidyverse)
+library(raster)
+library(rgdal)
+library(ncdf4)
+library(rgeos)
+library(sf)
+library(mgcv)
 
 # =-=-=-=-=-=-=-=-=-= Routes
-rootPath <- '//dapadfs/Workspace_cluster_9/AgMetGaps/'
+rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
 calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
 climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
 IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
-modelsPath <- paste0(rootPath, '3_monthly_climate_variability/models/')
+modelsPath <- paste0(rootPath, '3_monthly_climate_variability/models_02/')
 modelPolyPath <- paste0(modelsPath, 'polynomial/')
 modelGAMpath <- paste0(modelsPath, 'GAM/')
 shpPath <- paste0(rootPath, '0_general_inputs/shp/')
@@ -41,7 +46,7 @@ gam_model <- function(.x,.y){
   tryCatch( {
     
     if(.x == 0){
-      gm <- gam(.y$yield~ s(.y$value, fx = TRUE) )
+      gm <- gam(.y$yield~ s(.y$value, fx = TRUE), method="REML" )
       dev <- summary(gm)$dev.expl  
       
     }else{
@@ -58,22 +63,23 @@ gam_model <- function(.x,.y){
 
 calcModels <- function(crop, seasonCrop){
   # =-=-=-=-=-=-=-=-=-= Calendar (raster)
-  # crop <- 'maize'
+  # crop <- 'Maize'
   # seasonCrop <- 'maize_major'
   calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
-    stack() %>% 
-    crop(extent(-180, 180, -50, 50))
+    raster::stack() %>% 
+    raster::crop(extent(-180, 180, -50, 50))
 
   # =-=-=-=-=-=-=-=-= read all data sets
   
   # =-=-=-=-=-= read gap data
   iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE) %>% 
-    stack() %>% 
-    crop(extent(-180, 180, -50, 50))
+    raster::stack() %>% 
+    raster::crop(extent(-180, 180, -50, 50))
   
   for(i in 1:6){
     # i <- 1
     # =-=-=-=-=-= read climate data
+    print(i)
     names <- strsplit(list.files(paste0(climatePath, crop))[i], ".nc$") %>%  unlist
     
     print(paste0('Crop: ', crop, ' --- Season: ', seasonCrop, ' --- Variable: ', names))
@@ -151,6 +157,7 @@ calcModels <- function(crop, seasonCrop){
         coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
         labs(x= 'Longitude', y = 'Latitude')
     
+    print(paste0(modelPolyPath, crop, '/polynomial_', names, '.png'))
     ggsave(paste0(modelPolyPath, crop, '/polynomial_', names, '.png'))
 
     poly_GAM %>% 
@@ -161,9 +168,11 @@ calcModels <- function(crop, seasonCrop){
       coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
       labs(x= 'Longitude', y = 'Latitude')
     
+    print(paste0(modelGAMpath, crop, '/GAM_', names, '.png'))
     ggsave(paste0(modelGAMpath, crop, '/GAM_', names, '.png'))
     
     # =-=-=-=-=-=- Write result tables in csv
+    print("cvs")
     write.csv(x = poly_GAM_table, file = paste0(modelsPath, crop, '_poly_GAM_', names, '.csv'))
     
     # =-=-=-=-=-=- Rasterize tables and write raster in tiff

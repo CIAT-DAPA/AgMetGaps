@@ -140,7 +140,7 @@ values_trimestre <- function(stk_vx, variable, spatial_points, date_raster){
   # rm(gther_spatial_points)
 }
 
-climate <- purrr::map2(.x = stk_vx, .y = type, .f = ~future(values_trimestre(.x, .y, spatial_points, date_raster))) %>%
+climate <- purrr::map2(.x = stk_vx, .y = type, .f = ~future(values_trimestre(.x, .y, gaps_sf, date_raster))) %>%
   future::values()
 ## id, lat, long, climate, year, trimestre, value
 

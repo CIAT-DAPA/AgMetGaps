@@ -233,7 +233,53 @@ gc()
 
 ## funcion para organizar clima de acuerdo al planting y harvesting (recordar que se puede sembrar en diciembre y cosechar el otro año)
 
+prueba <- full_data %>%
+  filter(HarvestMonthInt <2)
 
+# ... with 3,002,185 more rows, and 7 more variables:
+  #   MaizeHarvestTrimTemp <dbl>, MaizePlantingTrimPrecip <dbl>,
+  #   MaizePlantingTrimTemp <dbl>, FloweringMonthInt <dbl>,
+  #   HarvestMonthInt <dbl>, PlantingMonthInt <dbl>, gap <dbl>
+
+prueba <- prueba %>%
+  nest(-id) %>%
+  filter(row_number()<=1) %>%
+  unnest()
+
+variables_trim <- c('PlantingTrimPrecip', 
+                    'FloweringTrimPrecip', 
+                    'HarvestTrimPrecip',
+                    'PlantingTrimTemp',
+                    'FloweringTrimTemp', 
+                    'HarvestTrimTemp')
+
+variables_trim <-paste0('Maize', variables_trim)
+## casi terminando 
+prueba %>%
+  dplyr::select( PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, !!variables_trim, gap ) %>%
+  mutate(gap_new = if_else(HarvestMonthInt <  PlantingMonthInt, 
+                           lead(gap, 1), 
+                           gap), 
+         MaizeFloweringTrimPrecip_new = case_when(FloweringMonthInt < PlantingMonthInt ~ lead(MaizeFloweringTrimPrecip, 1),
+                                                  HarvestMonthInt < FloweringMonthInt ~ MaizeFloweringTrimPrecip,
+                                                  TRUE ~ MaizeFloweringTrimPrecip)) %>%
+  filter(!is.na(MaizeHarvestTrimPrecip_new)) %>%
+  dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, MaizeFloweringTrimPrecip, MaizeFloweringTrimPrecip_new, gap, gap_new) %>%
+  as.data.frame() %>% head
+
+
+  mutate(new = if_else(HarvestMonthInt <  PlantingMonthInt, lead(MaizePlantingTrimPrecip, 1), 
+                       MaizePlantingTrimPrecip)) %>%
+  dplyr::select(year, PlantingMonthInt, HarvestMonthInt, MaizePlantingTrimPrecip, new) %>%
+  tail()
+
+
+
+
+prueba %>%
+  pull(HarvestMonthInt) %>%
+  lead(1) %>%
+  tail()
 
 climate <- climate %>%
   nest(-id)

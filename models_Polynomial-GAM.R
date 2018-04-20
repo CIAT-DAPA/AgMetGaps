@@ -9,7 +9,8 @@ library(sf)
 library(mgcv)
 
 
-rootPath <- '//dapadfs/Workspace_cluster_9/AgMetGaps/'
+rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
+# rootPath <- '//dapadfs/workspace_cluster_9/AgMetGaps/'
 calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
 climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
 IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
@@ -17,26 +18,76 @@ IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
 # modelPolyPath <- paste0(modelsPath, 'polynomial/')
 # modelGAMpath <- paste0(modelsPath, 'GAM/')
 shpPath <- paste0(rootPath, '0_general_inputs/shp/')
-
+out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
 crop <- 'Maize'
 seasonCrop <- 'maize_major'
 
 # phenology <- c('Planting', 'Flowering', 'Harvest')
 
 ## loading calendar map
-calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
-  raster::stack() %>% 
+calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE)%>%
+  raster::stack() %>%
   raster::crop(extent(-180, 180, -50, 50))
+
+# condicion <- function(x){
+#   x <- as.character(x)
+#   
+#   y <-ifelse(x == 'NA', 0, x)
+#   return(y)
+# }
+data <- calendar[] %>% tbl_df() %>%
+  mutate(FloweringMonthInt = ifelse(is.na(FloweringMonthInt), 0, FloweringMonthInt), 
+         HarvestMonthInt = ifelse(is.na(HarvestMonthInt), 0, HarvestMonthInt), 
+         PlantingMonthInt = ifelse(is.na(PlantingMonthInt), 0, PlantingMonthInt)) %>%
+  as.matrix()
+calendar[] <- data
+
+
+  
+# calendar <- velox(calendar)
+# new_extent <- st_bbox(gaps_sf) %>% 
+#   as.vector() %>%
+#   tbl_df %>% 
+#   mutate(variable = c('xmin', 'ymin', 'xmax', 'ymax'))
+#   spread(variable, value)
+# extend(new_extent)
+
+
 ## loading yield gap
-gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE) %>% 
+gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE)%>% 
   raster::stack() %>% 
   raster::crop(extent(-180, 180, -50, 50))
-
-
 
 # knowing what is the number of year, we know that iizumi information it is from 1981 to 2011
 number_years <- length(names(gap_iizumi))
 
+
+
+# extent(y) <- extent(-180, 180, -50, 50)
+# all_data <- sum(gap_iizumi, na.rm = T)
+# x <- stack(gap_iizumi, calendar,  all_data, y)
+# x <- x %>%
+  # rasterToPoints() %>%
+  # tbl_df()
+
+# x %>% 
+#   filter(!is.na(layer.1), layer.1 != 0 ) %>%
+#   dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, yield_1981_gap, layer.2) %>%
+#   mutate(pixel = 1:nrow(.)) %>%
+#   filter(PlantingMonthInt > 10) %>%
+#   filter(row_number() <= 2)
+  # mutate(HP = HarvestMonthInt - PlantingMonthInt,
+  #        HF = HarvestMonthInt - FloweringMonthInt,
+  #        FP = FloweringMonthInt - PlantingMonthInt) %>% 
+  # mutate(harvest_year = case_when( HarvestMonthInt <  PlantingMonthInt ~ "next_Harvest"))
+  
+  
+  # dplyr::select(cond)
+
+  # calendar <- calendar  %>% raster::crop(extent(-122.95833, 151.45833, -35.45833, 49.95833))
+  # calendar <- velox(calendar)
+  # calendar$extract_points(gaps_sf[1:100, ])
+  # y$extract_points(gaps_sf[1:1000, ])
 # extract coordinates from iizumi yield gap
 gaps_sf <- rasterToPoints(gap_iizumi)%>%
   tbl_df() %>%
@@ -76,7 +127,7 @@ library(future)
 library(future.apply)
 library(velox)
 plan(sequential)
-plan(future::cluster, workers = 28)
+plan(future::cluster, workers = 19)
 options(future.globals.maxSize= 8912896000)
 
 ## reading number_years of band in trimester files make for Katia (average for each trimester in planting flowering and harvesting)
@@ -103,10 +154,10 @@ values_trimestre <- function(stk_vx, variable, spatial_points, date_raster){
   # variable <- type[1]
   # spatial_points <- gaps_sf
   
-  values <-  stk_vx$extract_points(spatial_points) %>%
+  values <-  stk_vx$extract_points(sp = spatial_points) %>%
     tbl_df() %>%
     purrr::set_names(date_raster) 
-  # mutate(id = 1:nrow(.))
+    # mutate(id = 1:nrow(.))
   
   
   ## quiza meter estos objetos como inputs para no estarlos creando para cada variable
@@ -140,6 +191,16 @@ values_trimestre <- function(stk_vx, variable, spatial_points, date_raster){
   # rm(gther_spatial_points)
 }
 
+season <- names(calendar)
+calendar <- velox(calendar)
+calendar_df <- calendar$extract_points(gaps_sf) %>%
+  tbl_df() %>%
+  purrr::set_names(season) %>%
+  mutate(id = 1:nrow(.)) 
+  
+
+rm(calendar)
+
 climate <- purrr::map2(.x = stk_vx, .y = type, .f = ~future(values_trimestre(.x, .y, gaps_sf, date_raster))) %>%
   future::values()
 ## id, lat, long, climate, year, trimestre, value
@@ -147,12 +208,32 @@ climate <- purrr::map2(.x = stk_vx, .y = type, .f = ~future(values_trimestre(.x,
 climate <- climate %>%
   purrr::reduce(left_join, by = c('id', 'lat', 'long', 'year'))
 
+full_data <- left_join(climate, calendar_df, by = 'id')
+
 ## agregar el gap antes de hacer el nest
 
 gther_spatial_points <- gaps_sf %>%
   st_set_geometry(NULL) %>%
-  mutate(id = 1:nrow(.)) %>%
-  gather(year, gap, -id)
+  # mutate(id = 1:nrow(.)) %>%
+  gather(year, gap) %>%
+  dplyr::select(-year)
+
+full_data <- bind_cols(full_data, gther_spatial_points)
+
+
+library(fst)
+install.packages('fst')
+write_csv(full_data, paste0(out_path, seasonCrop, '.csv'))
+fst::write_fst(full_data, paste0(out_path, seasonCrop, '.fst'))
+
+# gaps_sf full_data
+rm(list=setdiff(ls(), c('gaps_sf', 'full_data'))) 
+gc(reset = T)
+gc()
+
+## funcion para organizar clima de acuerdo al planting y harvesting (recordar que se puede sembrar en diciembre y cosechar el otro año)
+
+
 
 climate <- climate %>%
   nest(-id)

@@ -228,9 +228,17 @@ full_data <- bind_cols(full_data, gther_spatial_points)
 
 library(fst)
 install.packages('fst')
+
+## filtrando meses mayores que 0 (cero) en este caso 0 (cero)  significa NA
+full_data <- full_data %>% 
+  filter(!!sym(season_name[1]) > 0)
+
 write_csv(full_data, paste0(out_path, seasonCrop, '.csv'))
 fst::write_fst(full_data, paste0(out_path, seasonCrop, '.fst'))
 
+
+full_data %>% 
+  filter(!!sym(season_name[1]) > 0) 
 # gaps_sf full_data
 rm(list=setdiff(ls(), c('gaps_sf', 'full_data', 'type', 'season_name'))) 
 gc(reset = T)
@@ -238,8 +246,11 @@ gc()
 
 ## funcion para organizar clima de acuerdo al planting y harvesting (recordar que se puede sembrar en diciembre y cosechar el otro año)
 
+## esto como hacerlo en otro codigo que cargue la informacion de full_data
+
 prueba <- full_data %>%
-  filter(HarvestMonthInt <2)
+  filter(!!sym(season_name[1]) > 0) %>%
+  filter(HarvestMonthInt < 2)
 
 # ... with 3,002,185 more rows, and 7 more variables:
   #   MaizeHarvestTrimTemp <dbl>, MaizePlantingTrimPrecip <dbl>,
@@ -256,6 +267,10 @@ prueba <- prueba %>%
   filter(row_number()<=1) %>%
   unnest()
 
+prueba %>%
+  filter(!is.na(gap)) %>%
+  dplyr::select(gap , !!season_name, !!type)
+
 # variables_trim <- c('PlantingTrimPrecip', 
 #                     'FloweringTrimPrecip', 
 #                     'HarvestTrimPrecip',
@@ -266,23 +281,78 @@ prueba <- prueba %>%
 # variables_trim <-paste0('Maize', variables_trim)
 
 ## casi terminando 
-prueba %>%
-  dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, !!type, gap ) %>%
-  mutate(gap_new = if_else(HarvestMonthInt <  PlantingMonthInt, 
-                           lead(gap, 1), 
-                           gap), 
+## Plating, Flowering, Harvesting son los hombres de las columnas dentro del data frame que hacen referencia a la fecha del season
+## crop :: hace referencia del cultivo tal cual como se llama en los raster trimestrales para precip y temperatura
+
+
+
+make_lag <- function(df, Planting, Flowering, Harvesting, gap, crop){
+  
+  ## 
+  new_gap <- glue::glue('new_{gap}')
+  
+  crop_season <- function(crop, season, variable, type){
+    
+    switch(type, 
+           new = as.character(glue::glue('new_{crop}{stringr::str_replace(season, pattern = "MonthInt" , replacement = "")}Trim{variable}')),
+           old = as.character(glue::glue('{crop}{stringr::str_replace(season, pattern = "MonthInt" , replacement = "")}Trim{variable}')))
+    
+  }
+    # glue::glue('new_{crop}{stringr::str_replace(Flowering, pattern = "MonthInt" , replacement = "")}TrimPrecip')
+  # crop_season('Maize', Flowering, 'Precip')
+  
+
+  
+  df %>% ## identificando si el gap pertenece al año siguiente
+    filter(!is.na(gap)) %>%
+    mutate(new_gap = if_else(!!sym(Harvesting) < !!sym(Planting), 
+           lead(!!sym(gap), 1),
+           !!sym(gap))) %>%
+    ## identificando si el flowering pasa al siguiente año (precipitacion)
+    mutate(!!crop_season(crop, Flowering, 'Precip', 'new') := case_when(!!sym(Flowering) < !!sym(Planting) ~ lead(!!sym(crop_season(crop, Flowering, 'Precip', 'old')), 1), 
+                                     !!sym(Harvesting) < !!sym(Flowering) ~ !!sym(crop_season(crop, Flowering, 'Precip', 'old')),
+      TRUE ~ !!sym(crop_season(crop, Flowering, 'Precip', 'old')))) %>%
+    ## identificando si el flowering pasa al siguiente año (temperatura)
+    
+    mutate(!!crop_season(crop, Flowering, 'Temp', 'new') := case_when(!!sym(Flowering) < !!sym(Planting) ~ lead(!!sym(crop_season(crop, Flowering, 'Temp', 'old')), 1), 
+                                                                        !!sym(Harvesting) < !!sym(Flowering) ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')),
+                                                                        TRUE ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')))) %>%
+    ## Filtrando el ultimo año
+    
+    filter(!is.na(!!crop_season(crop, Flowering, 'Precip', 'old'))) # %>%
+    # dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, MaizeFloweringTrimPrecip, new_MaizeFloweringTrimPrecip, gap, new_gap) %>%
+    # as.matrix()
+}
+
+patterns <- list(
+  TRUE ~ !!crop_season(crop, Flowering, 'Precip', 'old'))
+
+
+make_lag(prueba,
+         Planting = 'PlantingMonthInt',
+         Flowering = 'FloweringMonthInt',
+         Harvesting = 'HarvestMonthInt', 
+         gap = 'gap', 
+         crop = 'Maize') 
+
+ 
+prueba <- prueba %>%
+  dplyr::select(!!season_name, !!type, gap ) %>% 
+  mutate(gap_new = if_else(HarvestMonthInt <  PlantingMonthInt,
+                           lead(gap, 1),
+                           gap),
          MaizeFloweringTrimPrecip_new = case_when(FloweringMonthInt < PlantingMonthInt ~ lead(MaizeFloweringTrimPrecip, 1),
                                                   HarvestMonthInt < FloweringMonthInt ~ MaizeFloweringTrimPrecip,
                                                   TRUE ~ MaizeFloweringTrimPrecip)) %>%
-  filter(!is.na(MaizeHarvestTrimPrecip_new)) %>%
+  filter(!is.na(MaizeHarvestTrimPrecip)) %>%
   dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, MaizeFloweringTrimPrecip, MaizeFloweringTrimPrecip_new, gap, gap_new) %>%
   as.data.frame() %>% head
 
 
-  mutate(new = if_else(HarvestMonthInt <  PlantingMonthInt, lead(MaizePlantingTrimPrecip, 1), 
-                       MaizePlantingTrimPrecip)) %>%
-  dplyr::select(year, PlantingMonthInt, HarvestMonthInt, MaizePlantingTrimPrecip, new) %>%
-  tail()
+  # mutate(new = if_else(HarvestMonthInt <  PlantingMonthInt, lead(MaizePlantingTrimPrecip, 1), 
+  #                      MaizePlantingTrimPrecip)) %>%
+  # dplyr::select(year, PlantingMonthInt, HarvestMonthInt, MaizePlantingTrimPrecip, new) %>%
+  # tail()
 
 
 

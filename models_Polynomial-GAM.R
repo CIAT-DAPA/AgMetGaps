@@ -31,6 +31,8 @@ calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.na
   raster::stack() %>%
   raster::crop(extent(-180, 180, -50, 50))
 
+season_name <- names(calendar)
+
 ## debido a que la extraccion de raster con variables tipo string se hace mas lento
 ## se clasfica el calendario 0 como en NA (ya que no puede exisitir mes 0)
 
@@ -58,17 +60,7 @@ data <- calendar[] %>%
 calendar[] <- data
 
 
-  
-# calendar <- velox(calendar)
-# new_extent <- st_bbox(gaps_sf) %>% 
-#   as.vector() %>%
-#   tbl_df %>% 
-#   mutate(variable = c('xmin', 'ymin', 'xmax', 'ymax'))
-#   spread(variable, value)
-# extend(new_extent)
-
-
-## loading yield gap
+## loading yield gap from Iizumi
 gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE)%>% 
   raster::stack() %>% 
   raster::crop(extent(-180, 180, -50, 50))
@@ -78,12 +70,6 @@ number_years <- length(names(gap_iizumi))
 
 
 
-# extent(y) <- extent(-180, 180, -50, 50)
-# all_data <- sum(gap_iizumi, na.rm = T)
-# x <- stack(gap_iizumi, calendar,  all_data, y)
-# x <- x %>%
-  # rasterToPoints() %>%
-  # tbl_df()
 
 # x %>% 
 #   filter(!is.na(layer.1), layer.1 != 0 ) %>%
@@ -103,6 +89,8 @@ number_years <- length(names(gap_iizumi))
   # calendar <- velox(calendar)
   # calendar$extract_points(gaps_sf[1:100, ])
   # y$extract_points(gaps_sf[1:1000, ])
+
+
 # extract coordinates from iizumi yield gap
 gaps_sf <- rasterToPoints(gap_iizumi)%>%
   tbl_df() %>%
@@ -149,6 +137,7 @@ options(future.globals.maxSize= 8912896000)
 stk_vx <- future.apply::future_lapply(X = trimester_files, FUN = read_bands, number_years) %>%
   future.apply::future_lapply(FUN = velox) 
 
+gc(reset = T)
 ## es para averiguar que trimestre es
 
 type <- list.files(paste0(climatePath, crop), full.names = T) %>%
@@ -207,6 +196,7 @@ values_trimestre <- function(stk_vx, variable, spatial_points, date_raster){
 }
 
 season <- names(calendar)
+
 calendar <- velox(calendar)
 calendar_df <- calendar$extract_points(gaps_sf) %>%
   tbl_df() %>%
@@ -242,7 +232,7 @@ write_csv(full_data, paste0(out_path, seasonCrop, '.csv'))
 fst::write_fst(full_data, paste0(out_path, seasonCrop, '.fst'))
 
 # gaps_sf full_data
-rm(list=setdiff(ls(), c('gaps_sf', 'full_data'))) 
+rm(list=setdiff(ls(), c('gaps_sf', 'full_data', 'type', 'season_name'))) 
 gc(reset = T)
 gc()
 
@@ -266,17 +256,18 @@ prueba <- prueba %>%
   filter(row_number()<=1) %>%
   unnest()
 
-variables_trim <- c('PlantingTrimPrecip', 
-                    'FloweringTrimPrecip', 
-                    'HarvestTrimPrecip',
-                    'PlantingTrimTemp',
-                    'FloweringTrimTemp', 
-                    'HarvestTrimTemp')
+# variables_trim <- c('PlantingTrimPrecip', 
+#                     'FloweringTrimPrecip', 
+#                     'HarvestTrimPrecip',
+#                     'PlantingTrimTemp',
+#                     'FloweringTrimTemp', 
+#                     'HarvestTrimTemp')
+# 
+# variables_trim <-paste0('Maize', variables_trim)
 
-variables_trim <-paste0('Maize', variables_trim)
 ## casi terminando 
 prueba %>%
-  dplyr::select( PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, !!variables_trim, gap ) %>%
+  dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, !!type, gap ) %>%
   mutate(gap_new = if_else(HarvestMonthInt <  PlantingMonthInt, 
                            lead(gap, 1), 
                            gap), 

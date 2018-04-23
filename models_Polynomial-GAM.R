@@ -313,12 +313,13 @@ make_lag <- function(df, Planting, Flowering, Harvesting, gap, crop){
                                      !!sym(Harvesting) < !!sym(Flowering) ~ !!sym(crop_season(crop, Flowering, 'Precip', 'old')),
       TRUE ~ !!sym(crop_season(crop, Flowering, 'Precip', 'old')))) %>%
     ## identificando si el flowering pasa al siguiente año (temperatura)
-    
     mutate(!!crop_season(crop, Flowering, 'Temp', 'new') := case_when(!!sym(Flowering) < !!sym(Planting) ~ lead(!!sym(crop_season(crop, Flowering, 'Temp', 'old')), 1), 
                                                                         !!sym(Harvesting) < !!sym(Flowering) ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')),
                                                                         TRUE ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')))) %>%
+    mutate(!!crop_season(crop, Harvesting, 'Temp', 'new') := if_else(!!sym(Harvesting) < !!sym(Planting),
+                                                                     lead(!!sym(Harvesting), 1),
+                                                                     !!sym(gap))) %>%
     ## Filtrando el ultimo año
-    
     filter(!is.na(!!crop_season(crop, Flowering, 'Precip', 'old'))) # %>%
     # dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, MaizeFloweringTrimPrecip, new_MaizeFloweringTrimPrecip, gap, new_gap) %>%
     # as.matrix()

@@ -22,6 +22,8 @@ out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
 crop <- 'Maize'
 seasonCrop <- 'maize_major'
 
+
+
 # phenology <- c('Planting', 'Flowering', 'Harvest')
 
 ## loading calendar map
@@ -29,17 +31,30 @@ calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.na
   raster::stack() %>%
   raster::crop(extent(-180, 180, -50, 50))
 
-# condicion <- function(x){
-#   x <- as.character(x)
-#   
-#   y <-ifelse(x == 'NA', 0, x)
-#   return(y)
-# }
-data <- calendar[] %>% tbl_df() %>%
-  mutate(FloweringMonthInt = ifelse(is.na(FloweringMonthInt), 0, FloweringMonthInt), 
-         HarvestMonthInt = ifelse(is.na(HarvestMonthInt), 0, HarvestMonthInt), 
-         PlantingMonthInt = ifelse(is.na(PlantingMonthInt), 0, PlantingMonthInt)) %>%
+## debido a que la extraccion de raster con variables tipo string se hace mas lento
+## se clasfica el calendario 0 como en NA (ya que no puede exisitir mes 0)
+
+calendar_NA <- function(x){
+  
+  # x <- as.character(x)
+
+  y <- if_else(is.na(x), 0, as.numeric(x))
+  
+  return(y)
+}
+
+
+# data <- calendar[] %>% tbl_df() %>%
+#   mutate(FloweringMonthInt = ifelse(is.na(FloweringMonthInt), 0, FloweringMonthInt), 
+#          HarvestMonthInt = ifelse(is.na(HarvestMonthInt), 0, HarvestMonthInt), 
+#          PlantingMonthInt = ifelse(is.na(PlantingMonthInt), 0, PlantingMonthInt)) %>%
+#   as.matrix()
+
+data <- calendar[] %>%
+  tbl_df() %>%
+  mutate_all(funs(calendar_NA)) %>%
   as.matrix()
+
 calendar[] <- data
 
 
@@ -240,6 +255,11 @@ prueba <- full_data %>%
   #   MaizeHarvestTrimTemp <dbl>, MaizePlantingTrimPrecip <dbl>,
   #   MaizePlantingTrimTemp <dbl>, FloweringMonthInt <dbl>,
   #   HarvestMonthInt <dbl>, PlantingMonthInt <dbl>, gap <dbl>
+
+
+# Organizar esta parte que la haga automatico sin necesidad de ingresar las variables a cambiar
+
+
 
 prueba <- prueba %>%
   nest(-id) %>%

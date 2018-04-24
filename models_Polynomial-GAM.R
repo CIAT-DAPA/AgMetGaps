@@ -21,8 +21,8 @@ IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
 # modelGAMpath <- paste0(modelsPath, 'GAM/')
 shpPath <- paste0(rootPath, '0_general_inputs/shp/')
 out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
-crop <- 'Maize'
-seasonCrop <- 'maize_major'
+crop <- 'Wheat'
+seasonCrop <- 'wheat_spring'
 
 
 
@@ -132,7 +132,7 @@ library(future)
 library(future.apply)
 library(velox)
 plan(sequential)
-plan(future::cluster, workers = 20)
+plan(future::cluster, workers = 18)
 options(future.globals.maxSize= 8912896000)
 
 ## reading number_years of band in trimester files make for Katia (average for each trimester in planting flowering and harvesting)
@@ -239,7 +239,7 @@ full_data <- full_data %>%
 write_csv(full_data, paste0(out_path, seasonCrop, 'omit_na.csv'))
 fst::write_fst(full_data, paste0(out_path, seasonCrop, 'omit_na.fst'))
 
-full_data <- fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
+# full_data <- fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
 # gaps_sf full_data
 rm(list=setdiff(ls(), c('gaps_sf', 'full_data', 'type', 'season_name'))) 
 gc(reset = T)
@@ -352,7 +352,7 @@ full_data <- future_lapply(X = full_data, FUN = make_lag, Planting = 'PlantingMo
                            Flowering = 'FloweringMonthInt', 
                            Harvesting = 'HarvestMonthInt', 
                            gap = 'gap',
-                           crop = 'Maize')
+                           crop = 'Wheat')
 toc()
 
 
@@ -399,7 +399,7 @@ years <- function(x){
 
 data_gam <- full_data %>%
   bind_rows() %>%
-  dplyr::select(id, long, lat, year, contains('new'), contains('PlantingTrim')) %>%
+  dplyr::select(id, long, lat, year, contains('new'), contains('PlantingTrim'), contains('gap')) %>%
   nest(-id) %>%
   mutate(years = purrr::map(.x = data, .f = years)) %>%
   # filter(years >= 22) %>%
@@ -483,26 +483,31 @@ mult_gam <- function(data){
   
   data %>%
     mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
-    unnest(models)
+    mutate(long = purrr::map(.x = data, .f = function(x){ x %>% dplyr::select(long) %>% distinct}),
+           lat = purrr::map(.x = data, .f = function(x){ x %>% dplyr::select(lat) %>% distinct})) %>%
+    unnest(long, lat, models) 
   
 }
+
 tic("gam model")
 x = future.apply::future_lapply(X = files, FUN = mult_gam)
 toc()
-for(i in 1:3){
-  print(i)
-  files[[i]] %>%
-    # filter(row_number()<=100) %>%
-    mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
-    unnest(models)
-  
-}
+
+x = bind_rows(x)
+
+y <- x %>%
+  # filter(row_number()<=2) %>%
+  mutate(long = purrr::map(.x = data, .f = function(x){ x %>% dplyr::select(long) %>% distinct}),
+         lat = purrr::map(.x = data, .f = function(x){ x %>% dplyr::select(lat) %>% distinct})) %>%
+  unnest(long, lat) %>%
+  dplyr::select(id, long, lat, everything(), -data)
+
+y <- y %>% dplyr::select(-data)
+write_csv(y, paste0(out_path, seasonCrop, '_models.csv'))
+fst::write_fst(y, paste0(out_path, seasonCrop, '_models.csv'))
 
 
-  data_gam %>%
-    filter(row_number()<=10) %>%
-    mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
-    unnest(models)
+fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
 
   
  # data_gam <- data_gam %>%

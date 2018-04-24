@@ -412,12 +412,15 @@ gam_model <- function(df){
   # df <- data_gam %>%
   #   filter(row_number() == 43) %>%
   #   unnest(data)
-
+  # new_gap <- 'new_gap'
+  require(rlang)
+  require(tidyverse)
+  
     vars_x <- df %>%
-      dplyr::select( contains('new'), contains('PlantingTrim'), -new_gap) %>%
+      dplyr::select( contains('new'), contains('PlantingTrim'), -!!sym('new_gap')) %>%
       names()
     
-    var_y <- 'new_gap'
+    # var_y <- 'new_gap'
   
     make_model <- function(x, y, df){
       
@@ -469,12 +472,37 @@ gam_model <- function(df){
  return(all_r2)
   
 }
+l = distribute_load(x = nrow(data_gam), n = 1800)
+
+files <- purrr::map(.x = l, .f = function(l, x) x[l, ], data_gam)
+plan(sequential)
+plan(future::multisession, workers = 20)
+
+
+mult_gam <- function(data){
+  
+  data %>%
+    mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
+    unnest(models)
+  
+}
+tic("gam model")
+x = future.apply::future_lapply(X = files, FUN = mult_gam)
+toc()
+for(i in 1:3){
+  print(i)
+  files[[i]] %>%
+    # filter(row_number()<=100) %>%
+    mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
+    unnest(models)
+  
+}
 
 
   data_gam %>%
-    filter(row_number()<=43) %>%
+    filter(row_number()<=10) %>%
     mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
-    unnest(models) 
+    unnest(models)
 
   
  # data_gam <- data_gam %>%

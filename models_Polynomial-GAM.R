@@ -317,14 +317,14 @@ make_lag <- function(df, Planting, Flowering, Harvesting, gap, crop){
       TRUE ~ !!sym(crop_season(crop, Flowering, 'Precip', 'old')))) %>%
     mutate(!!crop_season(crop, Harvesting, 'Precip', 'new') := if_else(!!sym(Harvesting) < !!sym(Planting),
                                                                      lead(!!sym(Harvesting), 1),
-                                                                     !!sym(gap))) %>%
+                                                                     !!sym(Harvesting))) %>%
     ## identificando si el flowering pasa al siguiente año (temperatura)
     mutate(!!crop_season(crop, Flowering, 'Temp', 'new') := case_when(!!sym(Flowering) < !!sym(Planting) ~ lead(!!sym(crop_season(crop, Flowering, 'Temp', 'old')), 1), 
                                                                         !!sym(Harvesting) < !!sym(Flowering) ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')),
                                                                         TRUE ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')))) %>%
     mutate(!!crop_season(crop, Harvesting, 'Temp', 'new') := if_else(!!sym(Harvesting) < !!sym(Planting),
                                                                      lead(!!sym(Harvesting), 1),
-                                                                     !!sym(gap))) %>%
+                                                                     !!sym(Harvesting))) %>%
     ## Filtrando el ultimo año
     filter(!is.na(!!crop_season(crop, Flowering, 'Precip', 'old'))) # %>%
     # dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, MaizeFloweringTrimPrecip, new_MaizeFloweringTrimPrecip, gap, new_gap) %>%
@@ -344,7 +344,7 @@ library(future.apply)
 library(tictoc)
 options(future.globals.maxSize= 8912896000)
 plan(sequential)
-plan(future::multisession, workers = 30)
+plan(future::multisession, workers = 20)
 
 full_data <- split(full_data, list(full_data$id))
 tic("future lapply make laps")
@@ -393,7 +393,7 @@ years <- function(x){
 }
 
 
-data_gam <- full_data %>%
+data_gam <- full_data[1:10] %>%
   bind_rows() %>%
   dplyr::select(id, long, lat, year, contains('new'), contains('PlantingTrim')) %>%
   nest(-id) %>%
@@ -405,19 +405,21 @@ data_gam <- full_data %>%
 gam_model <- function(df, var_x, var_y){ 
 
   tryCatch( {
-  # df <- data_gam %>%
-  #   filter(row_number() == 1) %>%
-  #   unnest(data)
+  df <- data_gam %>%
+    filter(row_number() == 2) %>%
+    unnest(data)
   # var_x <- 'MaizePlantingTrimPrecip'
     vars_x <- df %>%
       dplyr::select( contains('new'), contains('PlantingTrim'), -new_gap) %>%
       names()
   # var_y <- 'new_gap'
   
-    make_model <- function(x, y){
+    make_model <- function(x, y, df){
       
-      x <- dplyr::select(df, !!var_x) %>% pull
-      y <- dplyr::select(df, !!var_y) %>% pull
+      # x <- vars_x[2]
+      # y <- var_y 
+      x <- dplyr::select(df, !!x) %>% pull
+      y <- dplyr::select(df, !!y) %>% pull
       
       
       gm <- gam(y~ s(x, fx = TRUE), method = "REML")
@@ -427,9 +429,11 @@ gam_model <- function(df, var_x, var_y){
       
       
       index <- data_frame(corr, dev)
-      
+      return(index)
     }
      
+    make_model(vars_x[2], 'new_gap', df)
+    purrr::map(.x = vars_x, .f = make_model, y = 'new_gap', df)
     return(index) }, error = function(e) {
       return(NA)
     } )

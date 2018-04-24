@@ -410,9 +410,9 @@ gam_model <- function(df){
 
 
   # df <- data_gam %>%
-  #   filter(row_number() == 2) %>%
+  #   filter(row_number() == 43) %>%
   #   unnest(data)
-  # var_x <- 'MaizePlantingTrimPrecip'
+
     vars_x <- df %>%
       dplyr::select( contains('new'), contains('PlantingTrim'), -new_gap) %>%
       names()
@@ -421,8 +421,9 @@ gam_model <- function(df){
   
     make_model <- function(x, y, df){
       
-      x <- vars_x[2]
-      y <- var_y
+      tryCatch( {
+      # x <- vars_x[1]
+      # y <- var_y
       
       x_var <- dplyr::select(df, !!rlang::sym(x)) %>% pull
       y_var <- dplyr::select(df, !!y) %>% pull
@@ -433,7 +434,7 @@ gam_model <- function(df){
       
       corr <- cor(x_var, y_var)
       
- 
+      
       gam_r2 <- str_replace(glue::glue('{x}_gam_r2'), pattern = 'new_', 
                             replacement = '')
       
@@ -443,7 +444,21 @@ gam_model <- function(df){
       index <- data_frame(!!gam_r2 := dev,
                           !!corr_r2 := corr)
       
-      return(index)
+      return(index)} 
+      , error = function(e) {
+        
+        x_var <- dplyr::select(df, !!rlang::sym(x)) %>% pull
+        y_var <- dplyr::select(df, !!y) %>% pull
+        gam_r2 <- str_replace(glue::glue('{x}_gam_r2'), pattern = 'new_', 
+                              replacement = '')
+        
+        corr_r2 <- str_replace(glue::glue('{x}_corr'), pattern = 'new_', 
+                               replacement = '')
+        
+        index <- data_frame(!!gam_r2 := 'NA',
+                            !!corr_r2 := 'NA')
+        return(index)
+      } )
     }
      
     
@@ -454,7 +469,17 @@ gam_model <- function(df){
   
 }
 
+for(i in 40:50){
+  print(i)
+  data_gam %>%
+    filter(row_number()==i) %>%
+    mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
+    unnest(models) %>%
+    print()
+}
 
+
+  
  # data_gam <- data_gam %>%
     # filter(row_number() ==i) %>%
     # unnest(new_data) %>%

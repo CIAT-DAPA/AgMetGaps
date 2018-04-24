@@ -239,9 +239,9 @@ full_data <- full_data %>%
 write_csv(full_data, paste0(out_path, seasonCrop, 'omit_na.csv'))
 fst::write_fst(full_data, paste0(out_path, seasonCrop, 'omit_na.fst'))
 
-# full_data <- fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
+full_data <- fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
 # gaps_sf full_data
-rm(list=setdiff(ls(), c('gaps_sf', 'full_data', 'type', 'season_name'))) 
+rm(list=setdiff(ls(), c('gaps_sf', 'full_data', 'type', 'season_name', 'out_path'))) 
 gc(reset = T)
 gc()
 
@@ -249,9 +249,9 @@ gc()
 
 ## esto como hacerlo en otro codigo que cargue la informacion de full_data
 
-prueba <- full_data %>%
-  filter(PlantingMonthInt > 0) %>%
-  filter(HarvestMonthInt < 2)
+# prueba <- full_data %>%
+#   filter(PlantingMonthInt > 0) %>%
+#   filter(HarvestMonthInt < 2)
 
 # ... with 3,002,185 more rows, and 7 more variables:
   #   MaizeHarvestTrimTemp <dbl>, MaizePlantingTrimPrecip <dbl>,
@@ -352,10 +352,12 @@ full_data <- future_lapply(X = full_data, FUN = make_lag, Planting = 'PlantingMo
                            Flowering = 'FloweringMonthInt', 
                            Harvesting = 'HarvestMonthInt', 
                            gap = 'gap',
-                           crop = 'Wheat')
+                           crop = 'SpringWheat')
 toc()
 
-
+full_data %>%
+  bind_rows() %>%
+  fst::write_fst(paste0(out_path, seasonCrop, '_filter.fst'))
 
 # tic('100 calculos')
 # full_data %>%
@@ -389,7 +391,7 @@ toc()
 #   bind_rows() %>%
 #   fst::write_fst(paste0(out_path, seasonCrop, '_filter.fst'))
 
-full_data <- fst::read_fst(paste0(out_path, seasonCrop, '_filter.fst'), as.data.table = TRUE)
+# full_data <- fst::read_fst(paste0(out_path, seasonCrop, '_filter.fst'), as.data.table = TRUE)
 
 years <- function(x){
   
@@ -496,15 +498,11 @@ toc()
 x = bind_rows(x)
 
 y <- x %>%
-  # filter(row_number()<=2) %>%
-  mutate(long = purrr::map(.x = data, .f = function(x){ x %>% dplyr::select(long) %>% distinct}),
-         lat = purrr::map(.x = data, .f = function(x){ x %>% dplyr::select(lat) %>% distinct})) %>%
-  unnest(long, lat) %>%
   dplyr::select(id, long, lat, everything(), -data)
 
-y <- y %>% dplyr::select(-data)
+
 write_csv(y, paste0(out_path, seasonCrop, '_models.csv'))
-fst::write_fst(y, paste0(out_path, seasonCrop, '_models.csv'))
+fst::write_fst(y, paste0(out_path, seasonCrop, '_models.fst'))
 
 
 fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)

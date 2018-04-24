@@ -7,6 +7,8 @@ library(ncdf4)
 library(rgeos)
 library(sf)
 library(mgcv)
+library(data.table)
+library(fst)
 
 
 rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
@@ -130,7 +132,7 @@ library(future)
 library(future.apply)
 library(velox)
 plan(sequential)
-plan(future::cluster, workers = 19)
+plan(future::cluster, workers = 20)
 options(future.globals.maxSize= 8912896000)
 
 ## reading number_years of band in trimester files make for Katia (average for each trimester in planting flowering and harvesting)
@@ -230,15 +232,14 @@ library(fst)
 install.packages('fst')
 
 ## filtrando meses mayores que 0 (cero) en este caso 0 (cero)  significa NA
-full_data <- full_data %>% 
-  filter(!!sym(season_name[1]) > 0)
+full_data <- full_data %>%
+  filter(PlantingMonthInt > 0)
+  
 
-write_csv(full_data, paste0(out_path, seasonCrop, '.csv'))
-fst::write_fst(full_data, paste0(out_path, seasonCrop, '.fst'))
+write_csv(full_data, paste0(out_path, seasonCrop, 'omit_na.csv'))
+fst::write_fst(full_data, paste0(out_path, seasonCrop, 'omit_na.fst'))
 
-
-full_data %>% 
-  filter(!!sym(season_name[1]) > 0) 
+full_data <- fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
 # gaps_sf full_data
 rm(list=setdiff(ls(), c('gaps_sf', 'full_data', 'type', 'season_name'))) 
 gc(reset = T)
@@ -249,7 +250,7 @@ gc()
 ## esto como hacerlo en otro codigo que cargue la informacion de full_data
 
 prueba <- full_data %>%
-  filter(!!sym(season_name[1]) > 0) %>%
+  filter(PlantingMonthInt > 0) %>%
   filter(HarvestMonthInt < 2)
 
 # ... with 3,002,185 more rows, and 7 more variables:
@@ -262,14 +263,14 @@ prueba <- full_data %>%
 
 
 
-prueba <- prueba %>%
-  nest(-id) %>%
-  filter(row_number()<=1) %>%
-  unnest()
+# prueba <- prueba %>%
+#   nest(-id) %>%
+#   filter(row_number()<=1) %>%
+#   unnest()
 
-prueba %>%
-  filter(!is.na(gap)) %>%
-  dplyr::select(gap , !!season_name, !!type)
+# prueba %>%
+#   filter(!is.na(gap)) %>%
+#   dplyr::select(gap , !!season_name, !!type)
 
 # variables_trim <- c('PlantingTrimPrecip', 
 #                     'FloweringTrimPrecip', 
@@ -288,7 +289,8 @@ prueba %>%
 
 make_lag <- function(df, Planting, Flowering, Harvesting, gap, crop){
   
-  ## 
+  ## df <- full_data[[1]]
+  library(rlang)
   new_gap <- glue::glue('new_{gap}')
   
   crop_season <- function(crop, season, variable, type){
@@ -304,6 +306,7 @@ make_lag <- function(df, Planting, Flowering, Harvesting, gap, crop){
 
   
   df %>% ## identificando si el gap pertenece al año siguiente
+    tbl_df() %>%
     filter(!is.na(gap)) %>%
     mutate(new_gap = if_else(!!sym(Harvesting) < !!sym(Planting), 
            lead(!!sym(gap), 1),
@@ -312,6 +315,9 @@ make_lag <- function(df, Planting, Flowering, Harvesting, gap, crop){
     mutate(!!crop_season(crop, Flowering, 'Precip', 'new') := case_when(!!sym(Flowering) < !!sym(Planting) ~ lead(!!sym(crop_season(crop, Flowering, 'Precip', 'old')), 1), 
                                      !!sym(Harvesting) < !!sym(Flowering) ~ !!sym(crop_season(crop, Flowering, 'Precip', 'old')),
       TRUE ~ !!sym(crop_season(crop, Flowering, 'Precip', 'old')))) %>%
+    mutate(!!crop_season(crop, Harvesting, 'Precip', 'new') := if_else(!!sym(Harvesting) < !!sym(Planting),
+                                                                     lead(!!sym(Harvesting), 1),
+                                                                     !!sym(gap))) %>%
     ## identificando si el flowering pasa al siguiente año (temperatura)
     mutate(!!crop_season(crop, Flowering, 'Temp', 'new') := case_when(!!sym(Flowering) < !!sym(Planting) ~ lead(!!sym(crop_season(crop, Flowering, 'Temp', 'old')), 1), 
                                                                         !!sym(Harvesting) < !!sym(Flowering) ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')),
@@ -325,46 +331,162 @@ make_lag <- function(df, Planting, Flowering, Harvesting, gap, crop){
     # as.matrix()
 }
 
-patterns <- list(
-  TRUE ~ !!crop_season(crop, Flowering, 'Precip', 'old'))
 
 
-make_lag(prueba,
-         Planting = 'PlantingMonthInt',
-         Flowering = 'FloweringMonthInt',
-         Harvesting = 'HarvestMonthInt', 
-         gap = 'gap', 
-         crop = 'Maize') 
+# full_data <- full_data %>%
+#   nest(-id) 
+# 
+# gc(reset = T)
+# gc()
+## aplicando future Lapply
+library(future)
+library(future.apply)
+library(tictoc)
+options(future.globals.maxSize= 8912896000)
+plan(sequential)
+plan(future::multisession, workers = 30)
+
+full_data <- split(full_data, list(full_data$id))
+tic("future lapply make laps")
+full_data <- future_lapply(X = full_data, FUN = make_lag, Planting = 'PlantingMonthInt',
+                           Flowering = 'FloweringMonthInt', 
+                           Harvesting = 'HarvestMonthInt', 
+                           gap = 'gap',
+                           crop = 'Maize')
+toc()
+
+
+
+# tic('100 calculos')
+# full_data %>%
+#   filter(row_number() <= 200, row_number() > 100) %>%
+#   mutate(new_data = purrr::map(.x = data, .f = ~future(make_lag(.x, Planting = 'PlantingMonthInt',
+#                                                                 Flowering = 'FloweringMonthInt', 
+#                                                                 Harvesting = 'HarvestMonthInt', 
+#                                                                 gap = 'gap',
+#                                                                 crop = 'Maize')))) %>%
+#   mutate(new_data = purrr::map(new_data, ~value(.x))) 
+# toc()
+
+
+
+# tic('lag for climate datasets')
+# full_data <- full_data %>%
+#   # filter(row_number() <= 100) %>%
+#   mutate(new_data = purrr::map(.x = data, .f = make_lag, Planting = 'PlantingMonthInt',
+#                                                                 Flowering = 'FloweringMonthInt', 
+#                                                                 Harvesting = 'HarvestMonthInt', 
+#                                                                 gap = 'gap',
+#                                                                 crop = 'Maize')) 
+# toc()
+
+full_data %>%
+  dplyr::select(id, new_data) %>%
+  unnest() %>%
+  fst::write_fst(paste0(out_path, seasonCrop, '_filter.fst'))
+
+full_data <- fst::read_fst(paste0(out_path, seasonCrop, '_filter.fst'), as.data.table = TRUE)
+
+years <- function(x){
+  
+  nrow(x)
+}
+
+
+data_gam <- full_data %>%
+  bind_rows() %>%
+  dplyr::select(id, long, lat, year, contains('new'), contains('PlantingTrim')) %>%
+  nest(-id) %>%
+  mutate(years = purrr::map(.x = data, .f = years)) %>%
+  # filter(years >= 22) %>%
+  unnest(years) %>%
+  filter(years >= 22) 
+
+gam_model <- function(df, var_x, var_y){ 
+
+  tryCatch( {
+  # df <- data_gam %>%
+  #   filter(row_number() == 1) %>%
+  #   unnest(data)
+  # var_x <- 'MaizePlantingTrimPrecip'
+    vars_x <- df %>%
+      dplyr::select( contains('new'), contains('PlantingTrim'), -new_gap) %>%
+      names()
+  # var_y <- 'new_gap'
+  
+    make_model <- function(x, y){
+      
+      x <- dplyr::select(df, !!var_x) %>% pull
+      y <- dplyr::select(df, !!var_y) %>% pull
+      
+      
+      gm <- gam(y~ s(x, fx = TRUE), method = "REML")
+      dev <- summary(gm)$dev.expl  
+      
+      corr <- cor(x, y)
+      
+      
+      index <- data_frame(corr, dev)
+      
+    }
+     
+    return(index) }, error = function(e) {
+      return(NA)
+    } )
+  
+}
+
+
+ # data_gam <- data_gam %>%
+    # filter(row_number() ==i) %>%
+    # unnest(new_data) %>%
+    # dplyr::select(MaizePlantingTrimPrecip)
+    # mutate(gam_1 = purrr::map(.x = new_data, .f = gam_model, 'MaizePlantingTrimPrecip', 'new_gap'))
+
+type <- list.files(paste0(climatePath, crop), full.names = T) %>%
+  data_frame(path = .) %>%
+  mutate(type = basename(path),
+         trimestre = extract_trimestre(path)) %>%
+  dplyr::select(trimestre, everything()) %>%
+  pull(trimestre)
+
+
+tic("future lapply gam")
+full_data <- future_lapply(X = data_gam, FUN = gam_model)
+toc()
+
+data_gam_spatial <- full_data %>%
+  mutate(years = purrr::map(.x = data, .f = years)) %>%
+  filter(years < 22)
+
+## extraer las coordenadas para crear los objetos st_point
+
+
+# make_lag(prueba,
+#          Planting = 'PlantingMonthInt',
+#          Flowering = 'FloweringMonthInt',
+#          Harvesting = 'HarvestMonthInt',
+#          gap = 'gap',
+#          crop = 'Maize')
 
  
-prueba <- prueba %>%
-  dplyr::select(!!season_name, !!type, gap ) %>% 
-  mutate(gap_new = if_else(HarvestMonthInt <  PlantingMonthInt,
-                           lead(gap, 1),
-                           gap),
-         MaizeFloweringTrimPrecip_new = case_when(FloweringMonthInt < PlantingMonthInt ~ lead(MaizeFloweringTrimPrecip, 1),
-                                                  HarvestMonthInt < FloweringMonthInt ~ MaizeFloweringTrimPrecip,
-                                                  TRUE ~ MaizeFloweringTrimPrecip)) %>%
-  filter(!is.na(MaizeHarvestTrimPrecip)) %>%
-  dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, MaizeFloweringTrimPrecip, MaizeFloweringTrimPrecip_new, gap, gap_new) %>%
-  as.data.frame() %>% head
+# prueba <- prueba %>%
+#   dplyr::select(!!season_name, !!type, gap ) %>% 
+#   mutate(gap_new = if_else(HarvestMonthInt <  PlantingMonthInt,
+#                            lead(gap, 1),
+#                            gap),
+#          MaizeFloweringTrimPrecip_new = case_when(FloweringMonthInt < PlantingMonthInt ~ lead(MaizeFloweringTrimPrecip, 1),
+#                                                   HarvestMonthInt < FloweringMonthInt ~ MaizeFloweringTrimPrecip,
+#                                                   TRUE ~ MaizeFloweringTrimPrecip)) %>%
+#   filter(!is.na(MaizeHarvestTrimPrecip)) %>%
+#   dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, MaizeFloweringTrimPrecip, MaizeFloweringTrimPrecip_new, gap, gap_new) %>%
+#   as.data.frame() %>% head
 
 
   # mutate(new = if_else(HarvestMonthInt <  PlantingMonthInt, lead(MaizePlantingTrimPrecip, 1), 
   #                      MaizePlantingTrimPrecip)) %>%
   # dplyr::select(year, PlantingMonthInt, HarvestMonthInt, MaizePlantingTrimPrecip, new) %>%
   # tail()
-
-
-
-
-prueba %>%
-  pull(HarvestMonthInt) %>%
-  lead(1) %>%
-  tail()
-
-climate <- climate %>%
-  nest(-id)
 
 
 

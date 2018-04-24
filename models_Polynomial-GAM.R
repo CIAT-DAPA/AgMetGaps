@@ -317,14 +317,14 @@ make_lag <- function(df, Planting, Flowering, Harvesting, gap, crop){
       TRUE ~ !!sym(crop_season(crop, Flowering, 'Precip', 'old')))) %>%
     mutate(!!crop_season(crop, Harvesting, 'Precip', 'new') := if_else(!!sym(Harvesting) < !!sym(Planting),
                                                                      lead(!!sym(Harvesting), 1),
-                                                                     !!sym(Harvesting))) %>%
+                                                                     !!sym(crop_season(crop, Harvesting, 'Precip', 'old')))) %>%
     ## identificando si el flowering pasa al siguiente año (temperatura)
     mutate(!!crop_season(crop, Flowering, 'Temp', 'new') := case_when(!!sym(Flowering) < !!sym(Planting) ~ lead(!!sym(crop_season(crop, Flowering, 'Temp', 'old')), 1), 
                                                                         !!sym(Harvesting) < !!sym(Flowering) ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')),
                                                                         TRUE ~ !!sym(crop_season(crop, Flowering, 'Temp', 'old')))) %>%
     mutate(!!crop_season(crop, Harvesting, 'Temp', 'new') := if_else(!!sym(Harvesting) < !!sym(Planting),
                                                                      lead(!!sym(Harvesting), 1),
-                                                                     !!sym(Harvesting))) %>%
+                                                                     !!sym(crop_season(crop, Harvesting, 'Temp', 'old')))) %>%
     ## Filtrando el ultimo año
     filter(!is.na(!!crop_season(crop, Flowering, 'Precip', 'old'))) # %>%
     # dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, MaizeFloweringTrimPrecip, new_MaizeFloweringTrimPrecip, gap, new_gap) %>%
@@ -380,10 +380,14 @@ toc()
 #                                                                 crop = 'Maize')) 
 # toc()
 
-full_data %>%
-  dplyr::select(id, new_data) %>%
-  unnest() %>%
-  fst::write_fst(paste0(out_path, seasonCrop, '_filter.fst'))
+# full_data %>%
+#   dplyr::select(id, new_data) %>%
+#   unnest() %>%
+#   fst::write_fst(paste0(out_path, seasonCrop, '_filter.fst'))
+
+# full_data %>%
+#   bind_rows() %>%
+#   fst::write_fst(paste0(out_path, seasonCrop, '_filter.fst'))
 
 full_data <- fst::read_fst(paste0(out_path, seasonCrop, '_filter.fst'), as.data.table = TRUE)
 
@@ -393,7 +397,7 @@ years <- function(x){
 }
 
 
-data_gam <- full_data[1:10] %>%
+data_gam <- full_data %>%
   bind_rows() %>%
   dplyr::select(id, long, lat, year, contains('new'), contains('PlantingTrim')) %>%
   nest(-id) %>%
@@ -402,41 +406,51 @@ data_gam <- full_data[1:10] %>%
   unnest(years) %>%
   filter(years >= 22) 
 
-gam_model <- function(df, var_x, var_y){ 
+gam_model <- function(df){ 
 
-  tryCatch( {
-  df <- data_gam %>%
-    filter(row_number() == 2) %>%
-    unnest(data)
+
+  # df <- data_gam %>%
+  #   filter(row_number() == 2) %>%
+  #   unnest(data)
   # var_x <- 'MaizePlantingTrimPrecip'
     vars_x <- df %>%
       dplyr::select( contains('new'), contains('PlantingTrim'), -new_gap) %>%
       names()
-  # var_y <- 'new_gap'
+    
+    var_y <- 'new_gap'
   
     make_model <- function(x, y, df){
       
-      # x <- vars_x[2]
-      # y <- var_y 
-      x <- dplyr::select(df, !!x) %>% pull
-      y <- dplyr::select(df, !!y) %>% pull
+      x <- vars_x[2]
+      y <- var_y
+      
+      x_var <- dplyr::select(df, !!rlang::sym(x)) %>% pull
+      y_var <- dplyr::select(df, !!y) %>% pull
       
       
-      gm <- gam(y~ s(x, fx = TRUE), method = "REML")
+      gm <- gam(y_var~ s(x_var, fx = TRUE), method = "REML")
       dev <- summary(gm)$dev.expl  
       
-      corr <- cor(x, y)
+      corr <- cor(x_var, y_var)
       
+ 
+      gam_r2 <- str_replace(glue::glue('{x}_gam_r2'), pattern = 'new_', 
+                            replacement = '')
       
-      index <- data_frame(corr, dev)
+      corr_r2 <- str_replace(glue::glue('{x}_corr'), pattern = 'new_', 
+                          replacement = '')
+      
+      index <- data_frame(!!gam_r2 := dev,
+                          !!corr_r2 := corr)
+      
       return(index)
     }
      
-    make_model(vars_x[2], 'new_gap', df)
-    purrr::map(.x = vars_x, .f = make_model, y = 'new_gap', df)
-    return(index) }, error = function(e) {
-      return(NA)
-    } )
+    
+    all_r2 <- purrr::map(.x = vars_x, .f = make_model, y = 'new_gap', df) %>%
+      bind_cols()
+    
+ return(all_r2)
   
 }
 

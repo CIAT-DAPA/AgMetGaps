@@ -728,4 +728,111 @@ ggsave(paste0(modelsPath, 'Comparison.png'), width = 10, height = 7)
 
 
 
+##### vecinos
+
+
+
+points_in_distance <- function(in_pts,
+                               maxdist,
+                               ncuts = 10) {
+  
+  require(data.table)
+  require(sf)
+  # convert points to data.table and create a unique identifier
+  pts <-  data.table(in_pts)
+  pts <- pts[, or_id := 1:dim(in_pts)[1]]
+  
+  # divide the extent in quadrants in ncuts*ncuts quadrants and assign each
+  # point to a quadrant, then create the index over "x" to speed-up
+  # the subsetting
+  range_x  <- range(pts$x)
+  limits_x <-(range_x[1] + (0:ncuts)*(range_x[2] - range_x[1])/ncuts)
+  range_y  <- range(pts$y)
+  limits_y <- range_y[1] + (0:ncuts)*(range_y[2] - range_y[1])/ncuts
+  pts[, `:=`(xcut =  as.integer(cut(x, ncuts, labels = 1:ncuts)),
+             ycut = as.integer(cut(y, ncuts, labels = 1:ncuts)))]  %>%
+    setkey(x)
+  
+  results <- list()
+  count <- 0
+  # start cycling over quadrants
+  for (cutx in seq_len(ncuts)) {
+    
+    # get the points included in a x-slice extended by `maxdist`, and build
+    # an index over y to speed-up subsetting in the inner cycle
+    min_x_comp    <- ifelse(cutx == 1,
+                            limits_x[cutx],
+                            (limits_x[cutx] - maxdist))
+    max_x_comp    <- ifelse(cutx == ncuts,
+                            limits_x[cutx + 1],
+                            (limits_x[cutx + 1] + maxdist))
+    subpts_x <- pts[x >= min_x_comp & x < max_x_comp] %>%
+      setkey(y)
+    
+    for (cuty in seq_len(ncuts)) {
+      count <- count + 1
+      
+      # subset over subpts_x to find the final set of points needed for the
+      # comparisons
+      min_y_comp  <- ifelse(cuty == 1,
+                            limits_y[cuty],
+                            (limits_y[cuty] - maxdist))
+      max_y_comp  <- ifelse(cuty == ncuts,
+                            limits_y[cuty + 1],
+                            (limits_y[cuty + 1] + maxdist))
+      subpts_comp <- subpts_x[y >= min_y_comp & y < max_y_comp]
+      
+      # subset over subpts_comp to get the points included in a x/y chunk,
+      # which "neighbours" we want to find. Then buffer them by maxdist.
+      subpts_buf <- subpts_comp[ycut == cuty & xcut == cutx] %>%
+        sf::st_as_sf() %>% 
+        sf::st_buffer(maxdist)
+      
+      # retransform to sf since data.tables lost the geometric attrributes
+      subpts_comp <- sf::st_as_sf(subpts_comp)
+      
+      # compute the intersection and save results in a element of "results".
+      # For each point, save its "or_id" and the "or_ids" of the points within "dist"
+      inters <- sf::st_intersects(subpts_buf, subpts_comp)
+      
+      # save results
+      results[[count]] <- data.table(
+        id = subpts_buf$or_id,
+        int_ids = lapply(inters, FUN = function(x) subpts_comp$or_id[x]))
+    }
+  }
+  data.table::rbindlist(results)
+}
+
+
+gaps_sf <- gaps_sf %>%
+  rename(x = long, y = lat)
+
+gaps_sf <- gaps_sf %>%
+  mutate(id = 1:nrow(.))
+m <- points_in_distance(gaps_sf %>% filter(row_number()>= 100000, row_number() <= 190000), maxdist = 0.2, ncuts = 10)
+m <- points_in_distance(gaps_sf , maxdist = 0.2, ncuts = 10)
+
+vecinos <- function(spatial, id_vecinos){
+  
+  
+  z <- purrr::map(.x = 1:nrow(gaps_sf), .f = function(l, y, z){
+    
+    x <- y[l, ] %>%
+      tbl_df %>% unnest() %>% pull(int_ids)
+    
+    return(z[x, ])
+  }, m, gaps_sf)
+  
+  
+  
+  
+}
+purrr::map(.x = l, .f = function(l, x) x[l], file)
+
+z <- gaps_sf %>% filter(row_number()>= 100000, row_number() <= 190000)
+
+# plot(gaps_sf[, 'yield_1987_gap'], col = 'black')
+plot(z[, 'yield_2000_gap'], col = 'black')
+plot(z[m[85000, 'int_ids'] %>% tbl_df %>% unnest() %>% pull(int_ids), ], col = 'red', add = TRUE)
 

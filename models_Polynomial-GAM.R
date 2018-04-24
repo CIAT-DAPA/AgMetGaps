@@ -455,29 +455,26 @@ gam_model <- function(df){
         corr_r2 <- str_replace(glue::glue('{x}_corr'), pattern = 'new_', 
                                replacement = '')
         
-        index <- data_frame(!!gam_r2 := 'NA',
-                            !!corr_r2 := 'NA')
+        index <- data_frame(!!gam_r2 := 'NA_real_',
+                            !!corr_r2 := 'NA_real_')
         return(index)
       } )
     }
      
     
     all_r2 <- purrr::map(.x = vars_x, .f = make_model, y = 'new_gap', df) %>%
-      bind_cols()
+      bind_cols() %>%
+      mutate_all(funs(as.numeric))
     
  return(all_r2)
   
 }
 
-for(i in 40:50){
-  print(i)
-  data_gam %>%
-    filter(row_number()==i) %>%
-    mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
-    unnest(models) %>%
-    print()
-}
 
+  data_gam %>%
+    filter(row_number()<=43) %>%
+    mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
+    unnest(models) 
 
   
  # data_gam <- data_gam %>%

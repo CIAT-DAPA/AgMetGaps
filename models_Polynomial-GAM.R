@@ -21,8 +21,8 @@ IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
 # modelGAMpath <- paste0(modelsPath, 'GAM/')
 shpPath <- paste0(rootPath, '0_general_inputs/shp/')
 out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
-crop <- 'Wheat'
-seasonCrop <- 'wheat_spring'
+crop <- 'Maize'
+seasonCrop <- 'maize_major'
 
 
 
@@ -352,7 +352,7 @@ full_data <- future_lapply(X = full_data, FUN = make_lag, Planting = 'PlantingMo
                            Flowering = 'FloweringMonthInt', 
                            Harvesting = 'HarvestMonthInt', 
                            gap = 'gap',
-                           crop = 'SpringWheat')
+                           crop = 'Maize')
 toc()
 
 full_data %>%
@@ -505,7 +505,324 @@ write_csv(y, paste0(out_path, seasonCrop, '_models.csv'))
 fst::write_fst(y, paste0(out_path, seasonCrop, '_models.fst'))
 
 
-fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
+
+
+### vecinos gam
+
+
+gam_model <- function(df){ 
+  
+  
+  # df <- data_gam %>%
+  #   filter(row_number() == 43) %>%
+  #   unnest(data)
+  # new_gap <- 'new_gap'
+  require(rlang)
+  require(tidyverse)
+  
+  vars_x <- df %>%
+    dplyr::select( contains('new'), contains('PlantingTrim'), -!!sym('new_gap')) %>%
+    names()
+  
+  # var_y <- 'new_gap'
+  
+  make_model <- function(x, y, df){
+    
+    tryCatch( {
+      # x <- vars_x[1]
+      # y <- var_y
+      
+      x_var <- dplyr::select(df, !!rlang::sym(x)) %>% pull
+      y_var <- dplyr::select(df, !!y) %>% pull
+      
+      
+      gm <- gam(y_var~ s(x_var, fx = TRUE), method = "REML")
+      dev <- summary(gm)$dev.expl  
+      
+      corr <- cor(x_var, y_var)
+      
+      
+      gam_r2 <- str_replace(glue::glue('{x}_gam_r2'), pattern = 'new_', 
+                            replacement = '')
+      
+      corr_r2 <- str_replace(glue::glue('{x}_corr'), pattern = 'new_', 
+                             replacement = '')
+      
+      index <- data_frame(!!gam_r2 := dev,
+                          !!corr_r2 := corr)
+      
+      return(index)} 
+      , error = function(e) {
+        
+        x_var <- dplyr::select(df, !!rlang::sym(x)) %>% pull
+        y_var <- dplyr::select(df, !!y) %>% pull
+        gam_r2 <- str_replace(glue::glue('{x}_gam_r2'), pattern = 'new_', 
+                              replacement = '')
+        
+        corr_r2 <- str_replace(glue::glue('{x}_corr'), pattern = 'new_', 
+                               replacement = '')
+        
+        index <- data_frame(!!gam_r2 := 'NA_real_',
+                            !!corr_r2 := 'NA_real_')
+        return(index)
+      } )
+  }
+  
+  
+  all_r2 <- purrr::map(.x = vars_x, .f = make_model, y = 'new_gap', df) %>%
+    bind_cols() %>%
+    mutate_all(funs(as.numeric))
+  
+  return(all_r2)
+  
+}
+points_in_distance <- function(in_pts,
+                               maxdist,
+                               ncuts = 10) {
+  
+  require(data.table)
+  require(sf)
+  # convert points to data.table and create a unique identifier
+  pts <-  data.table(in_pts)
+  pts <- pts[, or_id := 1:dim(in_pts)[1]]
+  
+  # divide the extent in quadrants in ncuts*ncuts quadrants and assign each
+  # point to a quadrant, then create the index over "x" to speed-up
+  # the subsetting
+  range_x  <- range(pts$x)
+  limits_x <-(range_x[1] + (0:ncuts)*(range_x[2] - range_x[1])/ncuts)
+  range_y  <- range(pts$y)
+  limits_y <- range_y[1] + (0:ncuts)*(range_y[2] - range_y[1])/ncuts
+  pts[, `:=`(xcut =  as.integer(cut(x, ncuts, labels = 1:ncuts)),
+             ycut = as.integer(cut(y, ncuts, labels = 1:ncuts)))]  %>%
+    setkey(x)
+  
+  results <- list()
+  count <- 0
+  # start cycling over quadrants
+  for (cutx in seq_len(ncuts)) {
+    
+    # get the points included in a x-slice extended by `maxdist`, and build
+    # an index over y to speed-up subsetting in the inner cycle
+    min_x_comp    <- ifelse(cutx == 1,
+                            limits_x[cutx],
+                            (limits_x[cutx] - maxdist))
+    max_x_comp    <- ifelse(cutx == ncuts,
+                            limits_x[cutx + 1],
+                            (limits_x[cutx + 1] + maxdist))
+    subpts_x <- pts[x >= min_x_comp & x < max_x_comp] %>%
+      setkey(y)
+    
+    for (cuty in seq_len(ncuts)) {
+      count <- count + 1
+      
+      # subset over subpts_x to find the final set of points needed for the
+      # comparisons
+      min_y_comp  <- ifelse(cuty == 1,
+                            limits_y[cuty],
+                            (limits_y[cuty] - maxdist))
+      max_y_comp  <- ifelse(cuty == ncuts,
+                            limits_y[cuty + 1],
+                            (limits_y[cuty + 1] + maxdist))
+      subpts_comp <- subpts_x[y >= min_y_comp & y < max_y_comp]
+      
+      # subset over subpts_comp to get the points included in a x/y chunk,
+      # which "neighbours" we want to find. Then buffer them by maxdist.
+      subpts_buf <- subpts_comp[ycut == cuty & xcut == cutx] %>%
+        sf::st_as_sf() %>% 
+        sf::st_buffer(maxdist)
+      
+      # retransform to sf since data.tables lost the geometric attrributes
+      subpts_comp <- sf::st_as_sf(subpts_comp)
+      
+      # compute the intersection and save results in a element of "results".
+      # For each point, save its "or_id" and the "or_ids" of the points within "dist"
+      inters <- sf::st_intersects(subpts_buf, subpts_comp)
+      
+      # save results
+      results[[count]] <- data.table(
+        id = subpts_buf$or_id,
+        int_ids = lapply(inters, FUN = function(x) subpts_comp$or_id[x]))
+    }
+  }
+  data.table::rbindlist(results)
+}
+
+
+### hacer GAM a los pixeles que tienen poca informacion con los vecinos cercanos
+library(tidyverse)
+library(raster)
+library(rgdal)
+library(ncdf4)
+library(rgeos)
+library(sf)
+library(mgcv)
+library(data.table)
+library(fst)
+
+rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
+out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
+seasonCrop <- 'maize_major'
+IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
+
+full_data <- fst::read_fst(paste0(out_path, seasonCrop, '_filter.fst'), as.data.table = TRUE)
+
+full_data <- full_data %>%
+  tbl_df() %>%
+  nest(-id)
+
+
+gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE) %>% 
+  raster::stack() %>% 
+  raster::crop(extent(-180, 180, -50, 50))
+
+gaps_sf <- rasterToPoints(gap_iizumi)%>%
+  tbl_df() %>%
+  dplyr::rename(lat = y, long = x) %>%
+  mutate(id = 1:nrow(.)) %>%
+  dplyr::select(long, lat, id) %>%
+  st_as_sf(coords = c("long", "lat"), remove = FALSE)
+
+
+
+points <- left_join(gaps_sf, full_data, by = 'id') %>%
+  rename(x = long, y = lat)
+
+
+years <- function(x){
+  
+  as.numeric(nrow(x))
+}
+
+
+
+
+
+points <- points %>%
+  mutate(cond = purrr::map(.x = data, .f = function(x) as.character(is.null(x[[1]])))) %>%
+  unnest(cond) %>%
+  filter(cond == FALSE)
+
+
+data_ngh <- points %>%
+  # st_set_geometry(NULL) %>%
+  mutate(years = purrr::map(.x = data, .f = years)) %>%
+  unnest(years) %>%
+  filter(years < 22)
+
+m <- points_in_distance(points, maxdist = 0.2, ncuts = 10)
+
+m <- m %>%
+  tbl_df  
+
+
+data_ngh <- left_join(data_ngh, m, by = 'id') %>%
+  st_set_geometry(NULL) 
+
+positions <- data_ngh %>%
+  pull(int_ids)
+
+files <- purrr::map(.x = 1:dim(data_ngh)[1], .f = function(.x, data) data[.x, ], data_ngh)
+
+# gam_neighbors(files[[1]], positions[[1]], points)
+
+gam_neighbors <- function(data_ngh, positions, points){
+  
+  # i = 1
+  #  data_ngh <- files[[1]]
+  # positions <- positions[[1]]
+  x <- points %>%
+    filter(id %in% positions) %>%
+    st_set_geometry(NULL)
+  
+  
+  plant <- data_ngh %>%
+    dplyr::select(data) %>%
+    # st_set_geometry(NULL) %>%
+    unnest() %>%
+    distinct(PlantingMonthInt)  %>%
+    pull 
+  
+  latitude <- data_ngh %>%
+    dplyr::select(data) %>%
+    # st_set_geometry(NULL) %>%
+    unnest() %>%
+    distinct(lat)  %>%
+    pull
+  
+  
+  id_pixel <- data_ngh %>%
+    # dplyr::select(data) %>%
+    # st_set_geometry(NULL) %>%
+    # unnest() %>%
+    distinct(id)  %>%
+    pull
+  
+  longitude <- data_ngh %>%
+    dplyr::select(data) %>%
+    # st_set_geometry(NULL) %>%
+    unnest() %>%
+    distinct(long)  %>%
+    pull
+  
+  years_pixel <- data_ngh %>%
+    # dplyr::select(data) %>%
+    # st_set_geometry(NULL) %>%
+    # unnest() %>%
+    distinct(years)  %>%
+    pull
+  
+  tryCatch( {
+    x <- x %>%
+      mutate(planting = purrr::map(.x = data, .f = function(x) distinct(x, PlantingMonthInt))) %>%
+      unnest(planting) %>%
+      filter(PlantingMonthInt == plant) %>%
+      dplyr::select(-PlantingMonthInt, -x, -y, -cond) %>%
+      unnest(data) %>%
+      mutate(long = longitude, lat = latitude, id = id_pixel, years = years_pixel) %>%
+      nest(-id, -years)
+    
+    model <- mult_gam(x) %>%
+      dplyr::select(id, long, lat, years, everything(), -data) 
+    
+    return(model)} 
+    , error = function(e) {
+      
+    } )
+}
+
+mult_gam <- function(data){
+  
+  data %>%
+    mutate(models = purrr::map(.x = data, .f = gam_model)) %>%
+    mutate(long = purrr::map(.x = data, .f = function(x){ x %>% dplyr::select(long) %>% distinct}),
+           lat = purrr::map(.x = data, .f = function(x){ x %>% dplyr::select(lat) %>% distinct})) %>%
+    unnest(long, lat, models) 
+  
+}
+
+# for(i in 1:length(files)){
+#   print(i)
+#   gam_neighbors(files[[1]], positions[[1]], points)
+# }
+
+
+x = purrr::map2(.x = files, .y = positions, .f = gam_neighbors,  points)
+
+
+# x <- lapply(x, Filter, f = Negate(is.na))
+x <- bind_rows(x)
+write_csv(x, paste0(out_path, seasonCrop, '_models_gam_neighbors.csv'))
+fst::write_fst(x, paste0(out_path, seasonCrop, '_models_gam_neighbors.fst'))
+
+y = fst::read_fst( paste0(out_path, seasonCrop, '_models.fst'), as.data.table = T)
+
+x = as.data.table(x)
+
+z = rbindlist(list(y, x))
+
+write_csv(x, paste0(out_path, seasonCrop, '_models_gam_all.csv'))
+fst::write_fst(x, paste0(out_path, seasonCrop, '_models_gam_all.fst'))
 
   
  # data_gam <- data_gam %>%
@@ -514,21 +831,6 @@ fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
     # dplyr::select(MaizePlantingTrimPrecip)
     # mutate(gam_1 = purrr::map(.x = new_data, .f = gam_model, 'MaizePlantingTrimPrecip', 'new_gap'))
 
-type <- list.files(paste0(climatePath, crop), full.names = T) %>%
-  data_frame(path = .) %>%
-  mutate(type = basename(path),
-         trimestre = extract_trimestre(path)) %>%
-  dplyr::select(trimestre, everything()) %>%
-  pull(trimestre)
-
-
-tic("future lapply gam")
-full_data <- future_lapply(X = data_gam, FUN = gam_model)
-toc()
-
-data_gam_spatial <- full_data %>%
-  mutate(years = purrr::map(.x = data, .f = years)) %>%
-  filter(years < 22)
 
 ## extraer las coordenadas para crear los objetos st_point
 

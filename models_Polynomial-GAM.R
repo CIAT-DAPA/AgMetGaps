@@ -11,25 +11,34 @@ library(data.table)
 library(fst)
 
 
-rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
-# rootPath <- '//dapadfs/workspace_cluster_9/AgMetGaps/'
-calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
-climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
-IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
-# modelsPath <- paste0(rootPath, '3_monthly_climate_variability/models_02/')
-# modelPolyPath <- paste0(modelsPath, 'polynomial/')
-# modelGAMpath <- paste0(modelsPath, 'GAM/')
-shpPath <- paste0(rootPath, '0_general_inputs/shp/')
-out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
-crop <- 'Maize'
-seasonCrop <- 'maize_major'
+rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/' ## '//dapadfs/workspace_cluster_9/AgMetGaps/'
+calendarPath <- '/mnt/workspace_cluster_9/AgMetGaps/3_monthly_climate_variability/katia_calendar/'
+climatePath <- '/mnt/workspace_cluster_9/AgMetGaps/3_monthly_climate_variability/katia_climate/'
+IizumiPath <- '/mnt/workspace_cluster_9/AgMetGaps/1_crop_gaps/iizumi_processed/'
+# shpPath <- '/mnt/workspace_cluster_9/AgMetGaps/0_general_inputs/shp/'   ## averiguar para que es
+out_path <- '/mnt/workspace_cluster_9/AgMetGaps/3_monthly_climate_variability/Spatial_models/'
 
 
+# calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
+# climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
+# IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
 
-# phenology <- c('Planting', 'Flowering', 'Harvest')
+# shpPath <- paste0(rootPath, '0_general_inputs/shp/')
+# out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
+
+crop <- 'Wheat'  ## switch between: 'Maize', 'Rice', 'Wheat'
+seasonCrop <- 'wheat_spring' ## switch between: 'maize_major', 'rice_major', 'wheat_spring'
+
+## loading gap
+## loading yield gap from Iizumi  a veces va ser gap en otras yield
+
+gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE)%>% 
+  raster::stack() %>% 
+  raster::crop(extent(-180, 180, -50, 50))
 
 ## loading calendar map
-calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE)%>%
+
+calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
   raster::stack() %>%
   raster::crop(extent(-180, 180, -50, 50))
 
@@ -39,20 +48,11 @@ season_name <- names(calendar)
 ## se clasfica el calendario 0 como en NA (ya que no puede exisitir mes 0)
 
 calendar_NA <- function(x){
-  
-  # x <- as.character(x)
 
   y <- if_else(is.na(x), 0, as.numeric(x))
   
   return(y)
 }
-
-
-# data <- calendar[] %>% tbl_df() %>%
-#   mutate(FloweringMonthInt = ifelse(is.na(FloweringMonthInt), 0, FloweringMonthInt), 
-#          HarvestMonthInt = ifelse(is.na(HarvestMonthInt), 0, HarvestMonthInt), 
-#          PlantingMonthInt = ifelse(is.na(PlantingMonthInt), 0, PlantingMonthInt)) %>%
-#   as.matrix()
 
 data <- calendar[] %>%
   tbl_df() %>%
@@ -62,38 +62,12 @@ data <- calendar[] %>%
 calendar[] <- data
 
 
-## loading yield gap from Iizumi
-gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE)%>% 
-  raster::stack() %>% 
-  raster::crop(extent(-180, 180, -50, 50))
-
 # knowing what is the number of year, we know that iizumi information it is from 1981 to 2011
 number_years <- length(names(gap_iizumi))
 
 
-
-
-# x %>% 
-#   filter(!is.na(layer.1), layer.1 != 0 ) %>%
-#   dplyr::select(PlantingMonthInt, FloweringMonthInt, HarvestMonthInt, yield_1981_gap, layer.2) %>%
-#   mutate(pixel = 1:nrow(.)) %>%
-#   filter(PlantingMonthInt > 10) %>%
-#   filter(row_number() <= 2)
-  # mutate(HP = HarvestMonthInt - PlantingMonthInt,
-  #        HF = HarvestMonthInt - FloweringMonthInt,
-  #        FP = FloweringMonthInt - PlantingMonthInt) %>% 
-  # mutate(harvest_year = case_when( HarvestMonthInt <  PlantingMonthInt ~ "next_Harvest"))
-  
-  
-  # dplyr::select(cond)
-
-  # calendar <- calendar  %>% raster::crop(extent(-122.95833, 151.45833, -35.45833, 49.95833))
-  # calendar <- velox(calendar)
-  # calendar$extract_points(gaps_sf[1:100, ])
-  # y$extract_points(gaps_sf[1:1000, ])
-
-
 # extract coordinates from iizumi yield gap
+
 gaps_sf <- rasterToPoints(gap_iizumi)%>%
   tbl_df() %>%
   dplyr::rename(lat = y, long = x) %>%
@@ -116,6 +90,7 @@ extract_trimestre <- function(x){
 }
 
 ## function to read n bands from a raster
+## recordar que aca toco rotar en ambos ejes la informacion de calendario para los raster
 
 read_bands <- function(x, n_bands){
   
@@ -126,6 +101,8 @@ read_bands <- function(x, n_bands){
 }
 
 trimester_files <- list.files(paste0(climatePath, crop), full.names = T)
+
+
 
 ## aplicar plan future
 library(future)
@@ -236,10 +213,10 @@ full_data <- full_data %>%
   filter(PlantingMonthInt > 0)
   
 
-write_csv(full_data, paste0(out_path, seasonCrop, 'omit_na.csv'))
-fst::write_fst(full_data, paste0(out_path, seasonCrop, 'omit_na.fst'))
+write_csv(full_data, paste0(out_path, seasonCrop, '_omit_na.csv'))
+fst::write_fst(full_data, paste0(out_path, seasonCrop, '_omit_na.fst'))
 
-full_data <- fst::read_fst(paste0(out_path, seasonCrop, 'omit_na.fst'),as.data.table = TRUE)
+full_data <- fst::read_fst(paste0(out_path, seasonCrop, '_omit_na.fst'), as.data.table = TRUE)
 # gaps_sf full_data
 rm(list=setdiff(ls(), c('gaps_sf', 'full_data', 'type', 'season_name', 'out_path'))) 
 gc(reset = T)
@@ -662,7 +639,7 @@ library(fst)
 
 rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
 out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
-seasonCrop <- 'maize_major'
+seasonCrop <- 'wheat_spring'
 IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
 
 full_data <- fst::read_fst(paste0(out_path, seasonCrop, '_filter.fst'), as.data.table = TRUE)
@@ -682,8 +659,6 @@ gaps_sf <- rasterToPoints(gap_iizumi)%>%
   mutate(id = 1:nrow(.)) %>%
   dplyr::select(long, lat, id) %>%
   st_as_sf(coords = c("long", "lat"), remove = FALSE)
-
-
 
 points <- left_join(gaps_sf, full_data, by = 'id') %>%
   rename(x = long, y = lat)
@@ -819,10 +794,12 @@ y = fst::read_fst( paste0(out_path, seasonCrop, '_models.fst'), as.data.table = 
 
 x = as.data.table(x)
 
+x <- fst::read_fst( paste0(out_path, seasonCrop, '_models_gam_neighbors.fst'), as.data.table = T)
+
 z = rbindlist(list(y, x))
 
-write_csv(x, paste0(out_path, seasonCrop, '_models_gam_all.csv'))
-fst::write_fst(x, paste0(out_path, seasonCrop, '_models_gam_all.fst'))
+write_csv(z, paste0(out_path, seasonCrop, '_models_gam_all.csv'))
+fst::write_fst(z, paste0(out_path, seasonCrop, '_models_gam_all.fst'))
 
   
  # data_gam <- data_gam %>%

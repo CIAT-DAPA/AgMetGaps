@@ -19,19 +19,13 @@ IizumiPath <- '/mnt/workspace_cluster_9/AgMetGaps/1_crop_gaps/iizumi_processed/'
 out_path <- '/mnt/workspace_cluster_9/AgMetGaps/3_monthly_climate_variability/Spatial_models/'
 
 
-# calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
-# climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
-# IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
-
-# shpPath <- paste0(rootPath, '0_general_inputs/shp/')
-# out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
-
 crop <- 'Wheat'  ## switch between: 'Maize', 'Rice', 'Wheat'
 seasonCrop <- 'wheat_spring' ## switch between: 'maize_major', 'rice_major', 'wheat_spring'
 
 ## loading gap
 ## loading yield gap from Iizumi  a veces va ser gap en otras yield
 
+# paste0(IizumiPath, seasonCrop, '/yield_', 1981:2011, '.tif')
 gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE)%>% 
   raster::stack() %>% 
   raster::crop(extent(-180, 180, -50, 50))
@@ -206,7 +200,7 @@ full_data <- bind_cols(full_data, gther_spatial_points)
 
 
 library(fst)
-install.packages('fst')
+#install.packages('fst')
 
 ## filtrando meses mayores que 0 (cero) en este caso 0 (cero)  significa NA
 full_data <- full_data %>%
@@ -451,6 +445,29 @@ gam_model <- function(df){
  return(all_r2)
   
 }
+
+
+distribute_load <- function(x, n) {
+  assertthat::assert_that(assertthat::is.count(x),
+                          assertthat::is.count(n),
+                          isTRUE(x > 0),
+                          isTRUE(n > 0))
+  if (n == 1) {
+    i <- list(seq_len(x))
+  } else if (x <= n) {
+    i <- as.list(seq_len(x))
+  } else {
+    j <- as.integer(floor(seq(1, n + 1 , length.out = x + 1)))
+    i <- list()
+    for (k in seq_len(n)) {
+      i[[k]] <- which(j == k)
+    }
+  }
+  
+  i
+}
+
+
 l = distribute_load(x = nrow(data_gam), n = 1800)
 
 files <- purrr::map(.x = l, .f = function(l, x) x[l, ], data_gam)
@@ -637,10 +654,10 @@ library(mgcv)
 library(data.table)
 library(fst)
 
-rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
-out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
-seasonCrop <- 'wheat_spring'
-IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
+#rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
+#out_path <- paste0(rootPath, '3_monthly_climate_variability/Spatial_models/')
+#seasonCrop <- 'wheat_spring'
+#IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
 
 full_data <- fst::read_fst(paste0(out_path, seasonCrop, '_filter.fst'), as.data.table = TRUE)
 
@@ -649,9 +666,9 @@ full_data <- full_data %>%
   nest(-id)
 
 
-gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE) %>% 
-  raster::stack() %>% 
-  raster::crop(extent(-180, 180, -50, 50))
+#gap_iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE) %>% 
+#  raster::stack() %>% 
+#  raster::crop(extent(-180, 180, -50, 50))
 
 gaps_sf <- rasterToPoints(gap_iizumi)%>%
   tbl_df() %>%
@@ -802,6 +819,26 @@ write_csv(z, paste0(out_path, seasonCrop, '_models_gam_all.csv'))
 fst::write_fst(z, paste0(out_path, seasonCrop, '_models_gam_all.fst'))
 
   
+
+
+ggplot(z, aes(x = long, y = lat, fill =  SpringWheatPlantingTrimTemp_gam_r2)) +
+  geom_tile() + coord_equal() + theme_bw() + theme(legend.position = 'bottom')
+
+
+gap_iizumi[[1]]
+
+
+
+raster::rasterize(z %>% dplyr::select(long, lat), gap_iizumi[[1]], 
+                  z %>% dplyr::select(SpringWheatPlantingTrimTemp_gam_r2), fun=sum) %>% 
+  plot
+
+
+
+
+
+
+
  # data_gam <- data_gam %>%
     # filter(row_number() ==i) %>%
     # unnest(new_data) %>%
@@ -856,183 +893,183 @@ fst::write_fst(z, paste0(out_path, seasonCrop, '_models_gam_all.fst'))
 # suppressMessages(if(!require(sf)){install.packages('sf'); library(sf)} else {library(sf)})
 # suppressMessages(if(!require(mgcv)){install.packages('mgcv'); library(mgcv)} else {library(mgcv)})
 
-library(tidyverse)
-library(raster)
-library(rgdal)
-library(ncdf4)
-library(rgeos)
-library(sf)
-library(mgcv)
+#library(tidyverse)
+#library(raster)
+#library(rgdal)
+#library(ncdf4)
+#library(rgeos)
+#library(sf)
+#library(mgcv)
 
 # =-=-=-=-=-=-=-=-=-= Routes
-rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
-calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
-climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
-IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
-modelsPath <- paste0(rootPath, '3_monthly_climate_variability/models_02/')
-modelPolyPath <- paste0(modelsPath, 'polynomial/')
-modelGAMpath <- paste0(modelsPath, 'GAM/')
-shpPath <- paste0(rootPath, '0_general_inputs/shp/')
+#rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
+#calendarPath <-  paste0(rootPath, '3_monthly_climate_variability/katia_calendar/')
+#climatePath <- paste0(rootPath, '3_monthly_climate_variability/katia_climate/') 
+#IizumiPath <- paste0(rootPath, '1_crop_gaps/iizumi_processed/')
+#modelsPath <- paste0(rootPath, '3_monthly_climate_variability/models_02/')
+#modelPolyPath <- paste0(modelsPath, 'polynomial/')
+#modelGAMpath <- paste0(modelsPath, 'GAM/')
+#shpPath <- paste0(rootPath, '0_general_inputs/shp/')
 
-# =-=-=-=-=-= Polynomial model -- Function 
-polynomial <- function(.x , .y){
-  if(.x == 0){
-    summary(lm(.y$yield ~ .y$value + I(.y$value^2)))$r.squared 
-  }else{
-    summary(lm(.y$yield[-1] ~.y$value[-31] + I(.y$value[-31]^2)))$r.squared 
-  }
-}
+## =-=-=-=-=-= Polynomial model -- Function 
+#polynomial <- function(.x , .y){
+#  if(.x == 0){
+#    summary(lm(.y$yield ~ .y$value + I(.y$value^2)))$r.squared 
+#  }else{
+#    summary(lm(.y$yield[-1] ~.y$value[-31] + I(.y$value[-31]^2)))$r.squared 
+#  }
+#}
 
 ### GAM
-gam_model <- function(.x,.y){ 
-  tryCatch( {
+#gam_model <- function(.x,.y){ 
+#  tryCatch( {
     
-    if(.x == 0){
-      gm <- gam(.y$yield~ s(.y$value, fx = TRUE), method="REML" )
-      dev <- summary(gm)$dev.expl  
+#    if(.x == 0){
+#      gm <- gam(.y$yield~ s(.y$value, fx = TRUE), method="REML" )
+#      dev <- summary(gm)$dev.expl  
       
-    }else{
+#    }else{
       
-      gm <- gam(.y$yield[-1]~ s(.y$value[-31], fx = TRUE) )
-      dev <- summary(gm)$dev.expl 
+#      gm <- gam(.y$yield[-1]~ s(.y$value[-31], fx = TRUE) )
+#      dev <- summary(gm)$dev.expl 
       
-    }
-    return(dev) } 
-    , error = function(e) {
-       return(NA)
-    } )
-  }
+#    }
+#    return(dev) } 
+#    , error = function(e) {
+#       return(NA)
+#    } )
+#  }
 
-calcModels <- function(crop, seasonCrop){
+#calcModels <- function(crop, seasonCrop){
   # =-=-=-=-=-=-=-=-=-= Calendar (raster)
   # crop <- 'Maize'
   # seasonCrop <- 'maize_major'
-  calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
-    raster::stack() %>% 
-    raster::crop(extent(-180, 180, -50, 50))
+#  calendar <- list.files(paste0(calendarPath, crop), pattern = 'Int.tif$', full.names = TRUE) %>%
+#    raster::stack() %>% 
+#    raster::crop(extent(-180, 180, -50, 50))
 
   # =-=-=-=-=-=-=-=-= read all data sets
   
   # =-=-=-=-=-= read gap data
-  iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE) %>% 
-    raster::stack() %>% 
-    raster::crop(extent(-180, 180, -50, 50))
+#  iizumi <- list.files(paste0(IizumiPath, seasonCrop), pattern = 'gap.tif$', full.names = TRUE) %>% 
+#    raster::stack() %>% 
+#    raster::crop(extent(-180, 180, -50, 50))
   
-  for(i in 1:6){
+#  for(i in 1:6){
     # i <- 1
     # =-=-=-=-=-= read climate data
-    print(i)
-    names <- strsplit(list.files(paste0(climatePath, crop))[i], ".nc$") %>%  unlist
+#    print(i)
+#    names <- strsplit(list.files(paste0(climatePath, crop))[i], ".nc$") %>%  unlist
     
-    print(paste0('Crop: ', crop, ' --- Season: ', seasonCrop, ' --- Variable: ', names))
+#    print(paste0('Crop: ', crop, ' --- Season: ', seasonCrop, ' --- Variable: ', names))
     
-    climate <- stack(x = list.files(paste0(climatePath, crop), full.names=T)[i] , bands= 1:31) %>% 
-      flip(., direction = 2) %>%
-      t()
+#    climate <- stack(x = list.files(paste0(climatePath, crop), full.names=T)[i] , bands= 1:31) %>% 
+#      flip(., direction = 2) %>%
+#      t()
     
     # crop(x = climate,extent(-180, 180, -50, 50))
-    extent(climate) <- extent(-180, 180, -50, 50)
-    crs(climate) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+#    extent(climate) <- extent(-180, 180, -50, 50)
+#    crs(climate) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
     
     
     # =-=-=-=-=-=-= Stack with all information data
-    rasts <- raster::stack(climate,iizumi,calendar) %>% 
-      rasterToPoints(x = .)  %>% 
-      as_tibble(.)  %>%
-      mutate(., ID = 1:nrow(.)) %>% 
-      filter(layer.1 != -999 ) %>%  # aqui se cambia el valor del NA del clima
-      filter( !is.na(yield_1981_gap ) )  %>% 
-      filter( !is.na(FloweringMonthInt ) )  %>% # en las siguientes 3 lineas se cambia el valor del NA del calendario
-      filter( !is.na(HarvestMonthInt ) ) %>% 
-      filter( !is.na(PlantingMonthInt ) )
+#    rasts <- raster::stack(climate,iizumi,calendar) %>% 
+#      rasterToPoints(x = .)  %>% 
+#      as_tibble(.)  %>%
+#      mutate(., ID = 1:nrow(.)) %>% 
+#      filter(layer.1 != -999 ) %>%  # aqui se cambia el valor del NA del clima
+#      filter( !is.na(yield_1981_gap ) )  %>% 
+#      filter( !is.na(FloweringMonthInt ) )  %>% # en las siguientes 3 lineas se cambia el valor del NA del calendario
+#      filter( !is.na(HarvestMonthInt ) ) %>% 
+#      filter( !is.na(PlantingMonthInt ) )
     
     # =-=-=-=-=-=-=-= Split tables
-    climate <- rasts[, c(68, 1:33)] %>% 
-      setNames( c("ID" ,"lon","lat", paste0("year.",1981:2011) )  )  %>% 
-      gather( year , value, year.1981:year.2011 )
+#    climate <- rasts[, c(68, 1:33)] %>% 
+#      setNames( c("ID" ,"lon","lat", paste0("year.",1981:2011) )  )  %>% 
+#      gather( year , value, year.1981:year.2011 )
     
-    yield <- rasts[, c(68, 1:2, 34:64)]  %>% 
-      setNames( c("ID", "lon","lat", paste0("year.",1981:2011) )  ) %>% 
-      gather( year , yield, year.1981:year.2011 )
+#    yield <- rasts[, c(68, 1:2, 34:64)]  %>% 
+#      setNames( c("ID", "lon","lat", paste0("year.",1981:2011) )  ) %>% 
+#      gather( year , yield, year.1981:year.2011 )
     
     # Restrictions at year-month 
-    calend <- rasts[, c(68,  65:67)] %>% 
-      mutate(HP = HarvestMonthInt - PlantingMonthInt, HF = HarvestMonthInt - FloweringMonthInt) %>% 
-      mutate(year_start =  ifelse(HF > 0 | HP > 0 , 0, 1)) %>% 
-      dplyr::select(ID, year_start)
+#    calend <- rasts[, c(68,  65:67)] %>% 
+#      mutate(HP = HarvestMonthInt - PlantingMonthInt, HF = HarvestMonthInt - FloweringMonthInt) %>% 
+#      mutate(year_start =  ifelse(HF > 0 | HP > 0 , 0, 1)) %>% 
+#      dplyr::select(ID, year_start)
     
     ## =-=-=-= Join Yield Gap with climate
-    model_data <- bind_cols( climate, yield) %>% 
-      dplyr::select(-ID1,-lon1, -lat1, -year1)
+#    model_data <- bind_cols( climate, yield) %>% 
+#      dplyr::select(-ID1,-lon1, -lat1, -year1)
     
     # =-=-=-=-=-=-=  Agrupate by ID information and paste the restrictions
-    proof <- model_data %>% 
-      group_by(ID) %>%
-      nest(-ID) %>% 
-      left_join(., calend)
+#    proof <- model_data %>% 
+#      group_by(ID) %>%
+#      nest(-ID) %>% 
+#      left_join(., calend)
     
     # =-=-=-=-=-= Run Models (linear (Polynomial)  and GAM)
-    system.time(
-    poly_GAM <- proof %>%
-      mutate(polynomial = purrr::map2(.x = year_start, .y = data, .f = polynomial) ) %>%
-      mutate(GAM = purrr::map2(.x = year_start, .y = data, .f = gam_model))  %>%
-      dplyr::select(ID, polynomial, GAM) %>% unnest
-    )
+#    system.time(
+#    poly_GAM <- proof %>%
+#      mutate(polynomial = purrr::map2(.x = year_start, .y = data, .f = polynomial) ) %>%
+#      mutate(GAM = purrr::map2(.x = year_start, .y = data, .f = gam_model))  %>%
+#      dplyr::select(ID, polynomial, GAM) %>% unnest
+#    )
 
     # =-=-=-=-=-= Join ID with lat, lon y models values
-    poly_GAM_table <- rasts[, c(68, 1:2)] %>%
-      inner_join(.,poly_GAM) %>%
-      dplyr::select(x,y,polynomial,GAM) %>%
-      filter(polynomial != 'NA' ) %>%
-      filter(GAM != 'NA' )
+#    poly_GAM_table <- rasts[, c(68, 1:2)] %>%
+#      inner_join(.,poly_GAM) %>%
+#      dplyr::select(x,y,polynomial,GAM) %>%
+#      filter(polynomial != 'NA' ) %>%
+#      filter(GAM != 'NA' )
 
     # =-=-=-=-=-= Making map result and save in .png
-    shp <- read_sf(paste0(shpPath, 'mapa_mundi.shp')) %>%
-      as('Spatial') %>%
-      crop(extent(-180, 180, -50, 50))
+#    shp <- read_sf(paste0(shpPath, 'mapa_mundi.shp')) %>%
+#      as('Spatial') %>%
+#      crop(extent(-180, 180, -50, 50))
 
-    poly_GAM %>% 
-        bind_cols(., rasts[,c(1,2)]) %>%
-        ggplot(aes(x = x, y = y))  +
-        geom_tile(aes(fill = polynomial)) + 
-        geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
-        coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
-        labs(x= 'Longitude', y = 'Latitude')
+#    poly_GAM %>% 
+#        bind_cols(., rasts[,c(1,2)]) %>%
+#        ggplot(aes(x = x, y = y))  +
+#        geom_tile(aes(fill = polynomial)) + 
+#        geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
+#        coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
+#        labs(x= 'Longitude', y = 'Latitude')
     
-    print(paste0(modelPolyPath, crop, '/polynomial_', names, '.png'))
-    ggsave(paste0(modelPolyPath, crop, '/polynomial_', names, '.png'))
+#    print(paste0(modelPolyPath, crop, '/polynomial_', names, '.png'))
+#    ggsave(paste0(modelPolyPath, crop, '/polynomial_', names, '.png'))
 
-    poly_GAM %>% 
-      bind_cols(., rasts[,c(1,2)]) %>%
-      ggplot(aes(x = x, y = y))  +
-      geom_tile(aes(fill = GAM)) + 
-      geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
-      coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
-      labs(x= 'Longitude', y = 'Latitude')
+#    poly_GAM %>% 
+#      bind_cols(., rasts[,c(1,2)]) %>%
+#      ggplot(aes(x = x, y = y))  +
+#      geom_tile(aes(fill = GAM)) + 
+#      geom_polygon(data = shp , aes(x = long, y = lat, group = group), color = 'black', fill = NA) +
+#      coord_equal() + theme_bw() +  scale_fill_distiller(palette = "Spectral") + 
+#      labs(x= 'Longitude', y = 'Latitude')
     
-    print(paste0(modelGAMpath, crop, '/GAM_', names, '.png'))
-    ggsave(paste0(modelGAMpath, crop, '/GAM_', names, '.png'))
+#    print(paste0(modelGAMpath, crop, '/GAM_', names, '.png'))
+#    ggsave(paste0(modelGAMpath, crop, '/GAM_', names, '.png'))
     
     # =-=-=-=-=-=- Write result tables in csv
-    print("cvs")
-    write.csv(x = poly_GAM_table, file = paste0(modelsPath, crop, '_poly_GAM_', names, '.csv'))
+#    print("cvs")
+#    write.csv(x = poly_GAM_table, file = paste0(modelsPath, crop, '_poly_GAM_', names, '.csv'))
     
     # =-=-=-=-=-=- Rasterize tables and write raster in tiff
-    tmpRaster <- raster(nrow=1200,ncol=4320)
-    extent(tmpRaster) <- extent(-180, 180, -50, 50)
-    coordinates(poly_GAM_table) <- ~x+y
+#    tmpRaster <- raster(nrow=1200,ncol=4320)
+#    extent(tmpRaster) <- extent(-180, 180, -50, 50)
+#    coordinates(poly_GAM_table) <- ~x+y
 
-    resultRaster <- rasterize(poly_GAM_table, tmpRaster , poly_GAM_table$polynomial)
-    writeRaster(x = resultRaster, file = paste0(modelPolyPath, crop, '/polynomial_', names, '.tif'), format="GTiff", overwrite=TRUE)
+#    resultRaster <- rasterize(poly_GAM_table, tmpRaster , poly_GAM_table$polynomial)
+#    writeRaster(x = resultRaster, file = paste0(modelPolyPath, crop, '/polynomial_', names, '.tif'), format="GTiff", overwrite=TRUE)
     
-    resultRaster <- rasterize(poly_GAM_table, tmpRaster , poly_GAM_table$GAM)
-    writeRaster(x = resultRaster, file = paste0(modelGAMpath, crop, '/GAM_', names, '.tif'), format="GTiff", overwrite=TRUE)
-  }
-}
+#    resultRaster <- rasterize(poly_GAM_table, tmpRaster , poly_GAM_table$GAM)
+#    writeRaster(x = resultRaster, file = paste0(modelGAMpath, crop, '/GAM_', names, '.tif'), format="GTiff", overwrite=TRUE)
+#  }
+#}
 
-calcModels('Maize', 'maize_major')
-calcModels('Rice', 'rice_major')
-calcModels('Wheat', 'wheat_spring')
+#calcModels('Maize', 'maize_major')
+#calcModels('Rice', 'rice_major')
+#calcModels('Wheat', 'wheat_spring')
 
 
 
@@ -1043,33 +1080,33 @@ calcModels('Wheat', 'wheat_spring')
 # =-=-=-=-=-=-=-=-=-= results summary 
 
 
-proof <- list.files(modelsPath, pattern = '.csv$', full.names = TRUE) %>% 
-  as.tibble() %>% 
-  mutate(only_names = list.files(modelsPath, pattern = '.csv$')) %>% 
-  mutate(data =  purrr::map(.x = value, .f =  read.csv)) %>%
-  select(-value) %>% 
-  separate(only_names, c("Crop", "value"), '_poly_GAM_') %>% 
-  separate( value , c("Var"), '.csv') %>% 
-  unite('var', c('Crop', 'Var')) %>%  unnest() %>% 
-  mutate(dif = ifelse((GAM - polynomial)>0, 1, 0)) 
+#proof <- list.files(modelsPath, pattern = '.csv$', full.names = TRUE) %>% 
+#  as.tibble() %>% 
+#  mutate(only_names = list.files(modelsPath, pattern = '.csv$')) %>% 
+#  mutate(data =  purrr::map(.x = value, .f =  read.csv)) %>%
+#  select(-value) %>% 
+#  separate(only_names, c("Crop", "value"), '_poly_GAM_') %>% 
+#  separate( value , c("Var"), '.csv') %>% 
+#  unite('var', c('Crop', 'Var')) %>%  unnest() %>% 
+#  mutate(dif = ifelse((GAM - polynomial)>0, 1, 0)) 
 
 
-proof %>%
-  ggplot(aes(x = polynomial, y = GAM)) + geom_point(aes(colour = as.factor(dif))) +
-  facet_grid(~var) + 
-  theme_bw()
+#proof %>%
+#  ggplot(aes(x = polynomial, y = GAM)) + geom_point(aes(colour = as.factor(dif))) +
+#  facet_grid(~var) + 
+#  theme_bw()
 
-ggsave(paste0(modelsPath, 'test.png'), width = 15, height = 4)
+#ggsave(paste0(modelsPath, 'test.png'), width = 15, height = 4)
 
 
 
-proof %>% 
-  select(var, polynomial, GAM) %>% 
-  gather(models, value, -var) %>% 
-  ggplot(aes(x =  var, y = value)) + geom_boxplot(aes(fill =  models)) +theme_bw() + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(x = '', y = 'R^2')
+#proof %>% 
+#  select(var, polynomial, GAM) %>% 
+#  gather(models, value, -var) %>% 
+#  ggplot(aes(x =  var, y = value)) + geom_boxplot(aes(fill =  models)) +theme_bw() + 
+#  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + labs(x = '', y = 'R^2')
 
-ggsave(paste0(modelsPath, 'Comparison.png'), width = 10, height = 7)
+#ggsave(paste0(modelsPath, 'Comparison.png'), width = 10, height = 7)
 
 
 
@@ -1078,107 +1115,107 @@ ggsave(paste0(modelsPath, 'Comparison.png'), width = 10, height = 7)
 
 
 
-points_in_distance <- function(in_pts,
-                               maxdist,
-                               ncuts = 10) {
+#points_in_distance <- function(in_pts,
+#                               maxdist,
+#                               ncuts = 10) {
   
-  require(data.table)
-  require(sf)
+#  require(data.table)
+#  require(sf)
   # convert points to data.table and create a unique identifier
-  pts <-  data.table(in_pts)
-  pts <- pts[, or_id := 1:dim(in_pts)[1]]
+#  pts <-  data.table(in_pts)
+#  pts <- pts[, or_id := 1:dim(in_pts)[1]]
   
   # divide the extent in quadrants in ncuts*ncuts quadrants and assign each
   # point to a quadrant, then create the index over "x" to speed-up
   # the subsetting
-  range_x  <- range(pts$x)
-  limits_x <-(range_x[1] + (0:ncuts)*(range_x[2] - range_x[1])/ncuts)
-  range_y  <- range(pts$y)
-  limits_y <- range_y[1] + (0:ncuts)*(range_y[2] - range_y[1])/ncuts
-  pts[, `:=`(xcut =  as.integer(cut(x, ncuts, labels = 1:ncuts)),
-             ycut = as.integer(cut(y, ncuts, labels = 1:ncuts)))]  %>%
-    setkey(x)
+#  range_x  <- range(pts$x)
+#  limits_x <-(range_x[1] + (0:ncuts)*(range_x[2] - range_x[1])/ncuts)
+#  range_y  <- range(pts$y)
+#  limits_y <- range_y[1] + (0:ncuts)*(range_y[2] - range_y[1])/ncuts
+#  pts[, `:=`(xcut =  as.integer(cut(x, ncuts, labels = 1:ncuts)),
+#             ycut = as.integer(cut(y, ncuts, labels = 1:ncuts)))]  %>%
+#    setkey(x)
   
-  results <- list()
-  count <- 0
+#  results <- list()
+#  count <- 0
   # start cycling over quadrants
-  for (cutx in seq_len(ncuts)) {
+#  for (cutx in seq_len(ncuts)) {
     
     # get the points included in a x-slice extended by `maxdist`, and build
     # an index over y to speed-up subsetting in the inner cycle
-    min_x_comp    <- ifelse(cutx == 1,
-                            limits_x[cutx],
-                            (limits_x[cutx] - maxdist))
-    max_x_comp    <- ifelse(cutx == ncuts,
-                            limits_x[cutx + 1],
-                            (limits_x[cutx + 1] + maxdist))
-    subpts_x <- pts[x >= min_x_comp & x < max_x_comp] %>%
-      setkey(y)
+#    min_x_comp    <- ifelse(cutx == 1,
+#                            limits_x[cutx],
+#                            (limits_x[cutx] - maxdist))
+#    max_x_comp    <- ifelse(cutx == ncuts,
+#                            limits_x[cutx + 1],
+#                            (limits_x[cutx + 1] + maxdist))
+#    subpts_x <- pts[x >= min_x_comp & x < max_x_comp] %>%
+#      setkey(y)
     
-    for (cuty in seq_len(ncuts)) {
-      count <- count + 1
+#    for (cuty in seq_len(ncuts)) {
+#      count <- count + 1
       
       # subset over subpts_x to find the final set of points needed for the
       # comparisons
-      min_y_comp  <- ifelse(cuty == 1,
-                            limits_y[cuty],
-                            (limits_y[cuty] - maxdist))
-      max_y_comp  <- ifelse(cuty == ncuts,
-                            limits_y[cuty + 1],
-                            (limits_y[cuty + 1] + maxdist))
-      subpts_comp <- subpts_x[y >= min_y_comp & y < max_y_comp]
+#      min_y_comp  <- ifelse(cuty == 1,
+#                            limits_y[cuty],
+#                            (limits_y[cuty] - maxdist))
+#      max_y_comp  <- ifelse(cuty == ncuts,
+#                            limits_y[cuty + 1],
+#                            (limits_y[cuty + 1] + maxdist))
+#      subpts_comp <- subpts_x[y >= min_y_comp & y < max_y_comp]
       
       # subset over subpts_comp to get the points included in a x/y chunk,
       # which "neighbours" we want to find. Then buffer them by maxdist.
-      subpts_buf <- subpts_comp[ycut == cuty & xcut == cutx] %>%
-        sf::st_as_sf() %>% 
-        sf::st_buffer(maxdist)
+#      subpts_buf <- subpts_comp[ycut == cuty & xcut == cutx] %>%
+#        sf::st_as_sf() %>% 
+#        sf::st_buffer(maxdist)
       
       # retransform to sf since data.tables lost the geometric attrributes
-      subpts_comp <- sf::st_as_sf(subpts_comp)
+#      subpts_comp <- sf::st_as_sf(subpts_comp)
       
       # compute the intersection and save results in a element of "results".
       # For each point, save its "or_id" and the "or_ids" of the points within "dist"
-      inters <- sf::st_intersects(subpts_buf, subpts_comp)
+#      inters <- sf::st_intersects(subpts_buf, subpts_comp)
       
       # save results
-      results[[count]] <- data.table(
-        id = subpts_buf$or_id,
-        int_ids = lapply(inters, FUN = function(x) subpts_comp$or_id[x]))
-    }
-  }
-  data.table::rbindlist(results)
-}
+#      results[[count]] <- data.table(
+#        id = subpts_buf$or_id,
+#        int_ids = lapply(inters, FUN = function(x) subpts_comp$or_id[x]))
+#    }
+#  }
+#  data.table::rbindlist(results)
+#}
 
 
-gaps_sf <- gaps_sf %>%
-  rename(x = long, y = lat)
+#gaps_sf <- gaps_sf %>%
+#  rename(x = long, y = lat)
 
-gaps_sf <- gaps_sf %>%
-  mutate(id = 1:nrow(.))
-m <- points_in_distance(gaps_sf %>% filter(row_number()>= 100000, row_number() <= 190000), maxdist = 0.2, ncuts = 10)
-m <- points_in_distance(gaps_sf , maxdist = 0.2, ncuts = 10)
+#gaps_sf <- gaps_sf %>%
+#  mutate(id = 1:nrow(.))
+#m <- points_in_distance(gaps_sf %>% filter(row_number()>= 100000, row_number() <= 190000), maxdist = 0.2, ncuts = 10)
+#m <- points_in_distance(gaps_sf , maxdist = 0.2, ncuts = 10)
 
-vecinos <- function(spatial, id_vecinos){
+#vecinos <- function(spatial, id_vecinos){
   
   
-  z <- purrr::map(.x = 1:nrow(gaps_sf), .f = function(l, y, z){
+#  z <- purrr::map(.x = 1:nrow(gaps_sf), .f = function(l, y, z){
     
-    x <- y[l, ] %>%
-      tbl_df %>% unnest() %>% pull(int_ids)
+#    x <- y[l, ] %>%
+#      tbl_df %>% unnest() %>% pull(int_ids)
     
-    return(z[x, ])
-  }, m, gaps_sf)
+#    return(z[x, ])
+#  }, m, gaps_sf)
   
   
   
   
-}
-purrr::map(.x = l, .f = function(l, x) x[l], file)
+#}
+#purrr::map(.x = l, .f = function(l, x) x[l], file)
 
-z <- gaps_sf %>% filter(row_number()>= 100000, row_number() <= 190000)
+#z <- gaps_sf %>% filter(row_number()>= 100000, row_number() <= 190000)
 
 # plot(gaps_sf[, 'yield_1987_gap'], col = 'black')
-plot(z[, 'yield_2000_gap'], col = 'black')
-plot(z[m[85000, 'int_ids'] %>% tbl_df %>% unnest() %>% pull(int_ids), ], col = 'red', add = TRUE)
+#plot(z[, 'yield_2000_gap'], col = 'black')
+#plot(z[m[85000, 'int_ids'] %>% tbl_df %>% unnest() %>% pull(int_ids), ], col = 'red', add = TRUE)
 

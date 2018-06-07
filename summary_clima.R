@@ -167,3 +167,220 @@ for(i in 1:6){
   GROC_files[[i]][which(GROC_files[[i]][] <= 0.5)] = NA
   writeRaster(GROC_files[[i]], paste0(out_path,  namesG)[i])  
 }
+
+
+rm(list = ls())
+gc()
+
+
+
+# ............................................
+# ............................................
+# ............................................
+
+
+# =-=-=-= This part is work about wether data. 
+
+############### packages
+library(tidyverse)
+library(raster)
+library(rgdal)
+library(ncdf4)
+library(rgeos)
+library(sf)
+library(data.table)
+library(fst)
+
+# =-=-=-= routes
+
+rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
+calendarPath <-  '/mnt/workspace_cluster_9/AgMetGaps/0_general_inputs/calendar_5min/'
+weatherPath <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/precipitation_points/weather_stations/'
+#out_path <- #
+
+
+
+# =-=-=-=-= Crop
+crop <- 'Wheat'
+season <- 'Wheat.Winter'
+# crop
+
+
+# =-=-=-=-= Calendar
+
+# start planting date
+plant.start <- list.files(paste0(calendarPath), pattern = glob2rx(paste0('*',season,'*.nc$')), full.names = TRUE ) %>%
+  raster::raster(varname = 'plant.start' ) %>% raster::crop(extent(-180, 180, -50, 50))
+# end planting date 
+plant.end<- list.files(paste0(calendarPath), pattern = glob2rx(paste0('*',season,'*.nc$')), full.names = TRUE ) %>%
+  raster::raster(varname = 'plant.end' ) %>% raster::crop(extent(-180, 180, -50, 50))
+
+# Calendar: window planting dates
+calendar <-  stack(plant.start, plant.end) 
+
+
+
+
+
+# =-=-=-=-= Read precipitation file with all information
+all_crop_data <- list.files(path = weatherPath, pattern = paste0(crop, '.fst'), full.names = TRUE) %>% fst::fst(.) %>% as.tibble()
+
+
+# =-=-=-=-= Re-order all dataset + id 
+test <- all_crop_data %>% 
+  gather(date_raster, precip, -id, -lat, -long) %>% 
+  mutate(year = lubridate::year(date_raster), 
+         julian = lubridate::yday(date_raster))  %>% 
+  nest(-id, -lat, -long)
+
+
+# =-=-=-=-= Coordenates for each point 
+ajam <- extract(calendar, test %>% dplyr::select(long, lat)) %>% as.tibble
+# add the coordenates to all data
+test <- bind_cols(test, ajam)
+
+
+# =-=-=-=-= Create tibble --- (for use in each row).
+tibbleE <- function(.x, .y){
+  date <-  data.frame(start = .x, end = .y)
+  return(date)}
+
+
+# =-=-=-=-= filter data only for the planting window. 
+filterD <- function(.x, .y){
+  a <- as.numeric(.y[1]);  b <- as.numeric(.y[2])
+  post <- a:b 
+  data <- .x %>% 
+    dplyr::filter(julian %in% post)
+  return(data)}
+
+
+# =-=-=-=-= omit NA data, by operate with it is imposible create a new data set with 
+#           only precipitation in a window planting.
+test <- test %>%
+  na.omit %>% 
+  rename(start = Wheat.Winter..Start.of.planting, end = Wheat.Winter..End.of.planting) %>% 
+  mutate(yes = map2(.x = start, .y = end, .f = tibbleE)) %>% 
+  dplyr::select(-start, -end) %>% # filter(row_number() == 1)  %>% 
+  mutate(data.F = map2(.x = data, .y = yes, .f = filterD ))
+
+
+# =-=-=-=-= This function count number of dry and wet days.
+number_of_days <- function(.x){
+  summ <- .x %>% 
+    summarise(number_dry = sum(dry_days), number_wet = sum(wet_days))
+  return(summ)}
+
+
+
+# =-=-=-=-= It make a variable to clasificate a day dry or wet and after count the wet and dry days. 
+test_days <- test %>% 
+  dplyr::select(id, lat, long,  data.F) %>% 
+  unnest %>% filter(year < 2012) %>% 
+  mutate(dry_days = ifelse(precip == 0, 1, 0), wet_days = ifelse(precip == 0, 0, 1) ) %>% 
+  nest(-id, -year, -long, -lat) %>% #filter(row_number() == 1 )%>%
+  mutate(number_days = purrr::map(.x = data, .f = number_of_days))
+
+
+
+
+
+
+##### From here all script is a proof about different emphasis.
+
+# =-=-=-=-=  With this function we count the number of consecutive days dry or wet. 
+find_ocurrences <- function(.x, k){
+  
+  dataset.w <- setDT(.x)[, counter := seq_len(.N), by=rleid(wet_days)] %>% 
+    filter(wet_days == 1) %>% 
+    summarise(count = sum(counter == k)) %>% 
+    cbind(type = 'wet_days', .)
+  
+  dataset.d <- setDT(.x)[, counter := seq_len(.N), by=rleid( dry_days)] %>% 
+    filter(dry_days == 1) %>% 
+    summarise(count = sum(counter >= k)) %>% 
+    cbind(type = 'dry_days', .)
+  
+  
+  dataset <- bind_rows(dataset.w, dataset.d) %>% as.tibble
+  
+  return(dataset)}
+
+
+
+# In this part, count the number of the consecutive days dry and wet, in k days (for this case is 4).
+test1 <- test_days %>% 
+  mutate(ocurrences = purrr::map(.x = data, 
+                                 .f = find_ocurrences, k = 4)) %>%
+  dplyr::select(id, long, lat,  year, ocurrences) %>% unnest
+
+
+# it is only for do a idea about the variables
+test1 %>% filter(type ==  'wet_days') %>% 
+  ggplot(aes(x = id, y = count, colour = as.factor(year))) + geom_point() + theme_bw()
+
+
+
+
+# ............................................................................................
+
+# It is a table with the 
+table <- test1 %>% 
+  nest(-id, -long, -lat) %>% 
+  filter(row_number() == 140) %>% 
+  dplyr::select(data) %>% 
+  unnest %>% 
+  filter(type == 'wet_days') %>% 
+  mutate(crop_failure =  ifelse(count < 1 , 1, 0)) %>% 
+  count(crop_failure) 
+
+
+failure_freq <- round((table %>% filter(crop_failure == 1) %>% dplyr::select(n)) / sum(table %>% dplyr::select(n)), 2)
+
+data.frame(table, failure_freq) 
+
+
+
+
+
+
+
+
+### other test 
+
+ajam <- test_days %>% 
+  dplyr::select(id, lat, long, year, data) %>% filter(row_number() == 1) %>% 
+  unnest %>%
+  dplyr::select(precip) %>% 
+  as.vector() 
+
+
+
+library(extRemes)
+
+a <- fevd(ajam, type="Gumbel", threshold = 0, time.units = "days/year" )
+a
+
+
+
+pevd(0, a,type="Gumbel" )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

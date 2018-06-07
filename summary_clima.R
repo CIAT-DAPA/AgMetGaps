@@ -179,7 +179,7 @@ gc()
 # ............................................
 
 
-# =-=-=-= This part is work about wether data. 
+# =-=-=-= This part is work about weather data. 
 
 ############### packages
 library(tidyverse)
@@ -325,14 +325,35 @@ test1 %>% filter(type ==  'wet_days') %>%
 # ............................................................................................
 
 # It is a table with the 
+
+count_timeWet <- function(row_id){
+  id_row <- row_id %>%
+    filter(type == 'wet_days') %>% 
+    mutate(crop_failure =  ifelse(count < 1 , 1, 0)) %>% # if it don't have... rainy days
+    count(crop_failure) 
+  return(id_row)}
+
+
+
 table <- test1 %>% 
   nest(-id, -long, -lat) %>% 
-  filter(row_number() == 140) %>% 
-  dplyr::select(data) %>% 
-  unnest %>% 
-  filter(type == 'wet_days') %>% 
-  mutate(crop_failure =  ifelse(count < 1 , 1, 0)) %>% 
-  count(crop_failure) 
+  mutate(wet_count = purrr::map(.x = data, .f = count_timeWet)) %>% 
+  dplyr::select(id, long, lat , wet_count) 
+
+
+
+table %>% filter(row_number() == 1) %>% 
+  dplyr::select(wet_count) %>% unnest
+
+
+
+
+
+
+
+
+
+
 
 
 failure_freq <- round((table %>% filter(crop_failure == 1) %>% dplyr::select(n)) / sum(table %>% dplyr::select(n)), 2)
@@ -351,35 +372,30 @@ data.frame(table, failure_freq)
 ajam <- test_days %>% 
   dplyr::select(id, lat, long, year, data) %>% filter(row_number() == 1) %>% 
   unnest %>%
-  dplyr::select(precip) %>% 
-  as.vector() 
+  dplyr::select(precip) 
 
 
 
 library(extRemes)
 
-a <- fevd(ajam, type="Gumbel", threshold = 0, time.units = "days/year" )
-a
+a <- fevd(ajam$precip, type="Gumbel", threshold = 0, time.units = "days/year" )
+
+# Parameters: location --- scale  ---  shape
+a$initial.results$MOM$pars
+plot(a)
+plot(a, 'trace')
+
+# 1- pevd(0, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" )
+
+#pevd(ajam$precip, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" ) %>% 
+#  cbind(prob = . , precip = ajam$precip) %>% data.frame() %>%   plot
 
 
-
-pevd(0, a,type="Gumbel" )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+b <- fevd(ajam$precip, type="GEV", threshold = 0, time.units = "days/year" )
+plot(b)
+plot(b, 'trace')
+# Parameters: location --- scale  ---  shape
+b$initial.results$MOM$pars
 
 
 

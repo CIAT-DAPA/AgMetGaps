@@ -304,7 +304,7 @@ find_ocurrences <- function(.x, k){
   
   dataset.w <- setDT(.x)[, counter := seq_len(.N), by=rleid(wet_days)] %>% 
     filter(wet_days == 1) %>% 
-    summarise(count = sum(counter == k)) %>% 
+    summarise(count = sum(counter >= k)) %>% 
     cbind(type = 'wet_days', .)
   
   dataset.d <- setDT(.x)[, counter := seq_len(.N), by=rleid( dry_days)] %>% 
@@ -358,9 +358,8 @@ table %>% filter(row_number() == 1) %>%
 
 
 
-failure_freq <- round((table %>% filter(crop_failure == 1) %>% dplyr::select(n)) / sum(table %>% dplyr::select(n)), 2)
-
-data.frame(table, failure_freq) 
+#failure_freq <- round((table %>% filter(crop_failure == 1) %>% dplyr::select(n)) / sum(table %>% dplyr::select(n)), 2)
+#data.frame(table, failure_freq) 
 
 
 
@@ -400,5 +399,44 @@ plot(b, 'trace')
 b$initial.results$MOM$pars
 
 
+
+
+
+
+# =-=-=-=-=  With this function we count the number of consecutive days dry or wet. 
+max_consecutive_days <- function(.x){
+  
+  #.x <- test_days %>% filter(id == 40 & year == 1984) %>% dplyr::select(-number_days) %>% unnest
+  
+  dataset.w <- setDT(.x)[, counter := seq_len(.N), by=rleid(wet_days)] %>% 
+    filter(wet_days == 1) %>% 
+    summarise(count = max(counter)) %>% 
+    cbind(type = 'Max_cd_wet', .)
+  
+  dataset.d <- setDT(.x)[, counter := seq_len(.N), by=rleid( dry_days)] %>% 
+    filter(dry_days == 1) %>% 
+    summarise(count = max(counter)) %>% 
+    cbind(type = 'Max_cd_dry', .)
+  
+  
+  dataset <- bind_rows(dataset.w, dataset.d) %>% as.tibble
+  
+  return(dataset)}
+
+
+
+# In this part, count the number of the consecutive days dry and wet, in k days (for this case is 4).
+test_max <- test_days %>% 
+  mutate(max = purrr::map(.x = data, 
+                          .f = max_consecutive_days)) %>%
+  dplyr::select(id, long, lat,  year, max) %>% 
+  unnest %>% 
+  mutate(count = ifelse( count == -Inf, 0 , count) )
+
+
+test_max %>% 
+  ggplot(aes(x = as.factor(year), y = count, fill = type)) + 
+  geom_boxplot() + 
+  theme_bw() 
 
 

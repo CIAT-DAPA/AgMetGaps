@@ -206,28 +206,32 @@ season <- 'Wheat.Winter'
 # crop
 
 
-# =-=-=-=-= Calendar
+# =-=-=-=-= Calendar Analysis
 
 # start planting date
-plant.start <- list.files(paste0(calendarPath), pattern = glob2rx(paste0('*',season,'*.nc$')), full.names = TRUE ) %>%
-  raster::raster(varname = 'plant.start' ) %>% raster::crop(extent(-180, 180, -50, 50))
+
+plant_start <- list.files(calendarPath, pattern = glob2rx(paste0('*',season,'*.nc$')), full.names = TRUE ) %>%
+  raster::raster(varname = 'plant.start' ) %>%
+  raster::crop(extent(-180, 180, -50, 50))
+
 # end planting date 
-plant.end<- list.files(paste0(calendarPath), pattern = glob2rx(paste0('*',season,'*.nc$')), full.names = TRUE ) %>%
-  raster::raster(varname = 'plant.end' ) %>% raster::crop(extent(-180, 180, -50, 50))
+plant_end<- list.files(paste0(calendarPath), pattern = glob2rx(paste0('*',season,'*.nc$')), full.names = TRUE ) %>%
+  raster::raster(varname = 'plant.end' ) %>% 
+  raster::crop(extent(-180, 180, -50, 50))
 
 # Calendar: window planting dates
-calendar <-  stack(plant.start, plant.end) 
-
-
-
+calendar <-  stack(plant_start, plant_end) 
 
 
 # =-=-=-=-= Read precipitation file with all information
-all_crop_data <- list.files(path = weatherPath, pattern = paste0(crop, '.fst'), full.names = TRUE) %>% fst::fst(.) %>% as.tibble()
+all_crop_data <- paste0(weatherPath, crop, '.fst') %>% 
+  read_fst(as.data.table = TRUE) %>%
+  as.tibble()
 
 
 # =-=-=-=-= Re-order all dataset + id 
-test <- all_crop_data %>% 
+# test
+tidy_climate <- all_crop_data %>% 
   gather(date_raster, precip, -id, -lat, -long) %>% 
   mutate(year = lubridate::year(date_raster), 
          julian = lubridate::yday(date_raster))  %>% 
@@ -235,29 +239,39 @@ test <- all_crop_data %>%
 
 
 # =-=-=-=-= Coordenates for each point 
-ajam <- extract(calendar, test %>% dplyr::select(long, lat)) %>% as.tibble
+
+coords <- tidy_climate %>% 
+  dplyr::select(long, lat)
+
+points_calendar <- extract(calendar, coords) %>%
+  as.tibble
 # add the coordenates to all data
-test <- bind_cols(test, ajam)
+tidy_climate <- bind_cols(tidy_climate, points_calendar)
 
 
 # =-=-=-=-= Create tibble --- (for use in each row).
+
 tibbleE <- function(.x, .y){
+  
   date <-  data.frame(start = .x, end = .y)
-  return(date)}
+  return(date)
+  }
 
 
 # =-=-=-=-= filter data only for the planting window. 
+
 filterD <- function(.x, .y){
   a <- as.numeric(.y[1]);  b <- as.numeric(.y[2])
   post <- a:b 
   data <- .x %>% 
     dplyr::filter(julian %in% post)
-  return(data)}
+  return(data)
+  }
 
 
 # =-=-=-=-= omit NA data, by operate with it is imposible create a new data set with 
 #           only precipitation in a window planting.
-test <- test %>%
+tidy_climate <- tidy_climate %>%
   na.omit %>% 
   rename(start = Wheat.Winter..Start.of.planting, end = Wheat.Winter..End.of.planting) %>% 
   mutate(yes = map2(.x = start, .y = end, .f = tibbleE)) %>% 
@@ -269,21 +283,18 @@ test <- test %>%
 number_of_days <- function(.x){
   summ <- .x %>% 
     summarise(number_dry = sum(dry_days), number_wet = sum(wet_days))
-  return(summ)}
+  return(summ)
+  }
 
 
 
 # =-=-=-=-= It make a variable to clasificate a day dry or wet and after count the wet and dry days. 
-test_days <- test %>% 
+test_days <- tidy_climate %>% 
   dplyr::select(id, lat, long,  data.F) %>% 
   unnest %>% filter(year < 2012) %>% 
   mutate(dry_days = ifelse(precip == 0, 1, 0), wet_days = ifelse(precip == 0, 0, 1) ) %>% 
   nest(-id, -year, -long, -lat) %>% #filter(row_number() == 1 )%>%
   mutate(number_days = purrr::map(.x = data, .f = number_of_days))
-
-
-
-
 
 
 ##### From here all script is a proof about different emphasis.
@@ -331,7 +342,8 @@ count_timeWet <- function(row_id){
     filter(type == 'wet_days') %>% 
     mutate(crop_failure =  ifelse(count < 1 , 1, 0)) %>% # if it don't have... rainy days
     count(crop_failure) 
-  return(id_row)}
+  return(id_row)
+  }
 
 
 
@@ -341,18 +353,8 @@ table <- test1 %>%
   dplyr::select(id, long, lat , wet_count) 
 
 
-
 table %>% filter(row_number() == 1) %>% 
   dplyr::select(wet_count) %>% unnest
-
-
-
-
-
-
-
-
-
 
 
 
@@ -379,14 +381,14 @@ ajam <- test_days %>%
 library(extRemes)
 
 a <- fevd(ajam$precip, type="Gumbel", threshold = 0, time.units = "days/year" )
-
+# a <- fevd(c(rnorm(10, 10, 1), 0, 0,0 ), type="Gumbel", threshold = 0, time.units = "days/year" )
 # Parameters: location --- scale  ---  shape
 a$initial.results$MOM$pars
 plot(a)
 plot(a, 'trace')
 
-# 1- pevd(0, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" )
-
+1- pevd(0, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" )
+revd(10, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="GP" )
 #pevd(ajam$precip, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" ) %>% 
 #  cbind(prob = . , precip = ajam$precip) %>% data.frame() %>%   plot
 

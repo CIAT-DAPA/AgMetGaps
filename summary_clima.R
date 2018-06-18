@@ -187,7 +187,7 @@ library(raster)
 library(rgdal)
 library(ncdf4)
 library(rgeos)
-library(sf)
+library(sf)  # (-.-)
 library(data.table)
 library(fst)
 
@@ -196,7 +196,14 @@ library(fst)
 rootPath <- '/mnt/workspace_cluster_9/AgMetGaps/'
 calendarPath <-  '/mnt/workspace_cluster_9/AgMetGaps/0_general_inputs/calendar_5min/'
 weatherPath <- '/mnt/workspace_cluster_9/AgMetGaps/weather_analysis/precipitation_points/weather_stations/'
+shpPath <- paste0(rootPath, '0_general_inputs/shp/')
+
 #out_path <- #
+
+
+shp_colombia <- st_read(dsn = paste0(shpPath, 'all_countries.shp')) %>%
+  as('Spatial') %>% crop(extent(-180, 180, -50, 50)) 
+
 
 
 
@@ -261,12 +268,31 @@ tibbleE <- function(.x, .y){
 # =-=-=-=-= filter data only for the planting window. 
 
 filterD <- function(.x, .y){
+  
+  # [primero que todo... crear las condiciones para el if... dentro de esta funcion... ]  
+  
   a <- as.numeric(.y[1]);  b <- as.numeric(.y[2])
-  post <- a:b 
-  data <- .x %>% 
-    dplyr::filter(julian %in% post)
-  return(data)
+  
+  if(a < b){
+    
+    post <- a:b 
+    data <- .x %>% 
+      dplyr::filter(julian %in% post) %>% 
+      filter(year <2012)
+    
+  } else if(a > b){
+    
+    data <-.x %>% 
+      filter(year < 2013) %>% 
+      #mutate(start = a, end = b) %>%
+      filter( julian <= b| a <= julian ) %>%
+      mutate(year = ifelse(julian <= b, year -1 , year)) %>% 
+      filter(year != 1980 & year != 2012)
   }
+  
+  return(data)
+}
+
 
 
 # =-=-=-=-= omit NA data, by operate with it is imposible create a new data set with 
@@ -274,9 +300,47 @@ filterD <- function(.x, .y){
 tidy_climate <- tidy_climate %>%
   na.omit %>% 
   rename(start = Wheat.Winter..Start.of.planting, end = Wheat.Winter..End.of.planting) %>% 
-  mutate(yes = map2(.x = start, .y = end, .f = tibbleE)) %>% 
-  dplyr::select(-start, -end) %>% # filter(row_number() == 1)  %>% 
-  mutate(data.F = map2(.x = data, .y = yes, .f = filterD ))
+  #mutate(condition = ifelse(start > end, 'yes', 'no'), dif = end - start) %>% 
+  mutate(yes = map2(.x = start, .y = end, .f = tibbleE)) %>%
+  #dplyr::select(-start, -end) %>% 
+  mutate(data.F = map2(.x = data, .y = yes, .f = filterD )) 
+
+
+
+
+#tidy_climate %>% 
+#    mutate(condition = ifelse(start > end, 'yes', 'no')) %>% 
+#    filter( condition == 'yes') %>% 
+#    filter(row_number() == 1) %>% 
+#    dplyr::select(start, data.F) %>% 
+#    unnest %>% 
+#    filter(year == 2010) %>% View
+
+# In this graph we know the difference between window dates
+tidy_climate %>% 
+  dplyr::select(id, start, end) %>% 
+  mutate(condition = ifelse(start > end, 'yes', 'no'), dif = end - start) %>%
+  #filter(condition == 'yes')
+  count(dif) %>% 
+  ggplot(aes(as.factor(dif),  n)) + geom_bar(stat = 'identity') + 
+  theme_bw()
+
+
+# length to the data in the window sowing 
+tidy_climate %>% 
+  dplyr::select(id, data.F) %>% 
+  unnest %>% 
+  filter(year == 2011) %>%
+  nest(-id) %>% 
+  mutate(leng = purrr::map(.x = data, .f = nrow)) %>% 
+  dplyr::select(-data) %>% 
+  unnest %>% 
+  ggplot(aes(as.factor(leng))) + geom_bar() + 
+  theme_bw()
+
+
+
+
 
 
 # =-=-=-=-= This function count number of dry and wet days.
@@ -288,13 +352,62 @@ number_of_days <- function(.x){
 
 
 
+
 # =-=-=-=-= It make a variable to clasificate a day dry or wet and after count the wet and dry days. 
 test_days <- tidy_climate %>% 
   dplyr::select(id, lat, long,  data.F) %>% 
   unnest %>% filter(year < 2012) %>% 
   mutate(dry_days = ifelse(precip == 0, 1, 0), wet_days = ifelse(precip == 0, 0, 1) ) %>% 
   nest(-id, -year, -long, -lat) %>% #filter(row_number() == 1 )%>%
-  mutate(number_days = purrr::map(.x = data, .f = number_of_days))
+  mutate(number_days = purrr::map(.x = data, .f = number_of_days)) %>% 
+  mutate(total_rows = purrr::map(.x = data, .f = nrow)) %>% 
+  mutate(probability = purrr::map2(.x = number_days, .y = total_rows, .f = function(.x,.y){.x / as.numeric(.y)})) 
+
+
+
+# This map is for represent number with for each year, and is only for describe the situation.
+test_days %>% 
+  dplyr::select(-data) %>% 
+  unnest %>% 
+  filter(year %in% 2008:2011) %>%
+  ggplot(aes(long, lat, fill = number_wet)) + geom_tile() +
+  scale_fill_gradientn(colours = rainbow(5)) +  
+  geom_polygon(data = shp_colombia, aes(x=long, y = lat, group = group), color = "gray30", fill=NA) + 
+  facet_wrap(~year, ncol = 2) + coord_fixed() +
+  theme_bw()
+
+# Here we calculate freq mean of dry and wet days... 
+freq_mean_days <- test_days %>% 
+  dplyr::select(id, lat, long, year, probability) %>% 
+  unnest() %>% 
+  group_by(id, lat,long) %>%
+  summarise(dry_mean = mean(number_dry) * 100, wet_mean = mean(number_wet) * 100) 
+
+
+
+# graphs 
+a1 <- freq_mean_days %>% 
+  ggplot(aes(x = long, y = lat, fill =  wet_mean)) + 
+  geom_raster() + scale_fill_gradientn(colours = rev(heat.colors(10))) + 
+  geom_polygon(data = shp_colombia, aes(x=long, y = lat, group = group), color = "gray30", fill=NA)  +
+  coord_fixed() +
+  theme_bw() + 
+  theme(legend.position = 'bottom')
+
+
+a2 <- freq_mean_days %>% 
+  ggplot(aes(x = long, y = lat, fill =  dry_mean)) + 
+  geom_raster() + scale_fill_gradientn(colours = rev(heat.colors(10))) + 
+  geom_polygon(data = shp_colombia, aes(x=long, y = lat, group = group), color = "gray30", fill=NA)  +
+  coord_fixed() +
+  theme_bw() + 
+  theme(legend.position = 'bottom')
+
+gridExtra::grid.arrange(a1,a2, ncol = 2)
+
+
+
+
 
 
 ##### From here all script is a proof about different emphasis.
@@ -320,46 +433,54 @@ find_ocurrences <- function(.x, k){
 
 
 # In this part, count the number of the consecutive days dry and wet, in k days (for this case is 4).
-test1 <- test_days %>% 
+kc_days <- test_days %>% 
   mutate(ocurrences = purrr::map(.x = data, 
                                  .f = find_ocurrences, k = 4)) %>%
   dplyr::select(id, long, lat,  year, ocurrences) %>% unnest
 
 
+
 # it is only for do a idea about the variables
-test1 %>% filter(type ==  'wet_days') %>% 
-  ggplot(aes(x = id, y = count, colour = as.factor(year))) + geom_point() + theme_bw()
+#kc_days %>% filter(type ==  'wet_days') %>%  ggplot(aes(x = id, y = count, colour = as.factor(year))) + geom_point() + theme_bw()
 
 
 
 
 # ............................................................................................
 
-# It is a table with the 
+# It is a table with the count about when was the crop failure if the reference time is k
 
 count_timeWet <- function(row_id){
   id_row <- row_id %>%
     filter(type == 'wet_days') %>% 
-    mutate(crop_failure =  ifelse(count < 1 , 1, 0)) %>% # if it don't have... rainy days
-    count(crop_failure) 
-  return(id_row)
-  }
+    mutate(crop_failure =  ifelse(count < 1 , 'failure', '-')) %>% # if it don't have... rainy days
+    count(crop_failure) %>%
+    mutate(freq = n /  sum(n))
+  return(id_row)}
 
-
-
-table <- test1 %>% 
+table <- kc_days %>% 
   nest(-id, -long, -lat) %>% 
   mutate(wet_count = purrr::map(.x = data, .f = count_timeWet)) %>% 
   dplyr::select(id, long, lat , wet_count) 
 
 
-table %>% filter(row_number() == 1) %>% 
-  dplyr::select(wet_count) %>% unnest
-
-
+table %>% filter(row_number() == 1) %>% dplyr::select(wet_count) %>% unnest
 
 #failure_freq <- round((table %>% filter(crop_failure == 1) %>% dplyr::select(n)) / sum(table %>% dplyr::select(n)), 2)
 #data.frame(table, failure_freq) 
+
+# It is a graph with the count about when was the crop failure if the reference time is k
+
+table %>% 
+  unnest %>% 
+  # filter(crop_failure == 'failure') %>% 
+  ggplot(aes(x = long, y = lat, fill = freq)) +
+  geom_raster() + 
+  scale_fill_gradientn(colours = rev(heat.colors(10))) + 
+  geom_polygon(data = shp_colombia, aes(x=long, y = lat, group = group), color = "gray30", fill=NA)  +
+  coord_fixed() + facet_grid(~crop_failure) + 
+  theme_bw() + 
+  theme(legend.position = 'bottom')
 
 
 
@@ -370,7 +491,7 @@ table %>% filter(row_number() == 1) %>%
 
 ### other test 
 
-ajam <- test_days %>% 
+proof_for_gumbel <- test_days %>% 
   dplyr::select(id, lat, long, year, data) %>% filter(row_number() == 1) %>% 
   unnest %>%
   dplyr::select(precip) 
@@ -379,7 +500,7 @@ ajam <- test_days %>%
 
 library(extRemes)
 
-a <- fevd(ajam$precip, type="Gumbel", threshold = 0, time.units = "days/year" )
+a <- fevd(proof_for_gumbel$precip, type="Gumbel", threshold = 0, time.units = "days/year" )
 # a <- fevd(c(rnorm(10, 10, 1), 0, 0,0 ), type="Gumbel", threshold = 0, time.units = "days/year" )
 # Parameters: location --- scale  ---  shape
 a$initial.results$MOM$pars
@@ -392,13 +513,8 @@ revd(10, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial
 #  cbind(prob = . , precip = ajam$precip) %>% data.frame() %>%   plot
 
 
-b <- fevd(ajam$precip, type="GEV", threshold = 0, time.units = "days/year" )
-plot(b)
-plot(b, 'trace')
-# Parameters: location --- scale  ---  shape
-b$initial.results$MOM$pars
 
-
+# =-=-=-=-=-=-=-= 
 
 
 
@@ -437,6 +553,20 @@ test_max <- test_days %>%
 test_max %>% 
   ggplot(aes(x = as.factor(year), y = count, fill = type)) + 
   geom_boxplot() + 
+  theme_bw() 
+
+
+
+
+
+
+p <- test_max %>% 
+  filter(year == 2010 & type == 'Max_cd_dry') %>% 
+  ggplot(aes(x = long, y = lat, fill = count)) + 
+  geom_raster() + 
+  geom_polygon(data = shp_colombia, aes(x=long, y = lat, group = group), color = "gray30", fill=NA) + 
+  scale_fill_gradient2() +
+  coord_equal() + 
   theme_bw() 
 
 

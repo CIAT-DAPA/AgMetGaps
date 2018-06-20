@@ -484,39 +484,30 @@ table %>%
 
 
 
-
-
-
-
-
-### other test 
+### other test =-=-=-=-=-=-=-=-=-=-=-=
 
 proof_for_gumbel <- test_days %>% 
-  dplyr::select(id, lat, long, year, data) %>% filter(row_number() == 1) %>% 
-  unnest %>%
-  dplyr::select(precip) 
+  dplyr::select(id, lat, long, year, data) %>% 
+  unnest %>% group_by(id, lat, long, year) %>%
+  summarise(prec_mean =  mean(precip)) %>% 
+  ungroup()
 
 
 
-library(extRemes)
+a <- extRemes::fevd(proof_for_gumbel$prec_mean, type="Gumbel", threshold = 0, time.units = "days/year" )
 
-a <- fevd(proof_for_gumbel$precip, type="Gumbel", threshold = 0, time.units = "days/year" )
-# a <- fevd(c(rnorm(10, 10, 1), 0, 0,0 ), type="Gumbel", threshold = 0, time.units = "days/year" )
 # Parameters: location --- scale  ---  shape
 a$initial.results$MOM$pars
 plot(a)
 plot(a, 'trace')
 
-1- pevd(0, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" )
-revd(10, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="GP" )
-#pevd(ajam$precip, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" ) %>% 
-#  cbind(prob = . , precip = ajam$precip) %>% data.frame() %>%   plot
+#1- extRemes::pevd(0, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" )
+#extRemes::pevd(ajam$precip, a$initial.results$MOM$pars[1], a$initial.results$MOM$pars[2], a$initial.results$MOM$pars[3] ,type="Gumbel" ) %>% 
+#cbind(prob = . , precip = ajam$precip) %>% data.frame() %>%   plot
 
 
 
 # =-=-=-=-=-=-=-= 
-
-
 
 
 # =-=-=-=-=  With this function we count the number of consecutive days dry or wet. 
@@ -540,9 +531,8 @@ max_consecutive_days <- function(.x){
   return(dataset)}
 
 
-
 # In this part, count the number of the consecutive days dry and wet, in k days (for this case is 4).
-test_max <- test_days %>% 
+Cdays_max <- test_days %>% 
   mutate(max = purrr::map(.x = data, 
                           .f = max_consecutive_days)) %>%
   dplyr::select(id, long, lat,  year, max) %>% 
@@ -550,7 +540,7 @@ test_max <- test_days %>%
   mutate(count = ifelse( count == -Inf, 0 , count) )
 
 
-test_max %>% 
+Cdays_max %>% 
   ggplot(aes(x = as.factor(year), y = count, fill = type)) + 
   geom_boxplot() + 
   theme_bw() 
@@ -558,11 +548,39 @@ test_max %>%
 
 
 
-
-
-p <- test_max %>% 
+p <- Cdays_max %>% 
   filter(year == 2010 & type == 'Max_cd_dry') %>% 
   ggplot(aes(x = long, y = lat, fill = count)) + 
+  geom_raster() + 
+  geom_polygon(data = shp_colombia, aes(x=long, y = lat, group = group), color = "gray30", fill=NA) + 
+  scale_fill_gradient2() +
+  coord_equal() + 
+  theme_bw() 
+
+
+# that thing is only for lear to do zoom with ggplot 
+p +
+  ggforce::facet_zoom(x = long < -50 & long > -125, y = lat > 10, horizontal = FALSE, zoom.size = 1 )
+
+
+
+
+
+
+total_rows  <- test_days %>% dplyr::select(id,  total_rows) %>% unnest
+# 
+
+Fdays_max <- Cdays_max  %>% 
+  left_join(total_rows, ., by = 'id') %>% 
+  mutate(freq =  count/ total_rows * 100)
+
+
+
+Fdays_max %>% 
+  group_by(id, long, lat, type) %>% 
+  summarise(Freq_mean = mean(freq)) %>% 
+  filter(type == 'Max_cd_wet') %>% 
+  ggplot(aes(x = long, y = lat, fill = Freq_mean)) + 
   geom_raster() + 
   geom_polygon(data = shp_colombia, aes(x=long, y = lat, group = group), color = "gray30", fill=NA) + 
   scale_fill_gradient2() +

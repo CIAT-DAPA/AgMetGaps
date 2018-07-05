@@ -58,19 +58,37 @@
 
 
       var historicalOverlay;
-
-      function initMap() {
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 3,
-          center: {lat: 0, lng: 0}
-        });
-
-        var imageBounds = {
+      var zoom;
+      var center;
+      var imageBounds = {
           north: 50,
           south: -50,
           east: 180,
           west: -180
         };
+
+      function initMap() {
+         var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 3,
+          center: {lat: 0, lng: 0}
+        });
+
+        //Set local storage variables.
+        center = map.getCenter();
+        zoom = map.getZoom();
+        
+        google.maps.event.addListener(map,"center_changed", function() {
+            //Set local storage variables.
+            center = map.getCenter();
+            zoom = map.getZoom();
+        });
+        
+        google.maps.event.addListener(map,"zoom_changed", function() {
+            //Set local storage variables.
+           center = map.getCenter();
+           zoom = map.getZoom();
+        });
+
 
         historicalOverlay = new google.maps.GroundOverlay(
             '1.png',
@@ -80,16 +98,28 @@
       
      function refreshMap(value) {
         var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 3,
-          center: {lat: 0, lng: 0}
+          zoom: zoom,
+          center: center
         });
 
-        var imageBounds = {
-          north: 50,
-          south: -50,
-          east: 180,
-          west: -180
-        };
+
+
+
+        //Set local storage variables.
+        center = map.getCenter();
+        zoom = map.getZoom();
+        
+        google.maps.event.addListener(map,"center_changed", function() {
+            //Set local storage variables.
+            center = map.getCenter();
+            zoom = map.getZoom();
+        });
+        
+        google.maps.event.addListener(map,"zoom_changed", function() {
+            //Set local storage variables.
+           center = map.getCenter();
+           zoom = map.getZoom();
+        });
 
         historicalOverlay = new google.maps.GroundOverlay(
             value+'.png',

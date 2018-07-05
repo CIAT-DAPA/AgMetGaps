@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>AgMetGaps Seasonal</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 90%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <style>
+     #custom-handle {
+       width: 3em;
+       height: 1.6em;
+       top: 50%;
+       margin-top: -.8em;
+       text-align: center;
+       line-height: 1.6em;
+     }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script>
+    $( function() {
+      var handle = $( "#custom-handle" );
+      $( "#slider" ).slider({
+        min: 1,
+        max: 12,
+        value: 1,
+        create: function() {
+                 handle.text( $( this ).slider( "value" ) );
+        },
+        slide: function( event, ui ) {
+                 handle.text( ui.value );
+                 refreshMap(ui.value );
+        }
+
+       });
+    } );
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="slider"><div id="custom-handle" class="ui-slider-handle"></div></div>
+    <script>
+
+
+      var historicalOverlay;
+
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 3,
+          center: {lat: 0, lng: 0}
+        });
+
+        var imageBounds = {
+          north: 50,
+          south: -50,
+          east: 180,
+          west: -180
+        };
+
+        historicalOverlay = new google.maps.GroundOverlay(
+            '1.png',
+            imageBounds);
+        historicalOverlay.setMap(map);
+      }
+      
+     function refreshMap(value) {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 3,
+          center: {lat: 0, lng: 0}
+        });
+
+        var imageBounds = {
+          north: 50,
+          south: -50,
+          east: 180,
+          west: -180
+        };
+
+        historicalOverlay = new google.maps.GroundOverlay(
+            value+'.png',
+            imageBounds);
+        historicalOverlay.setMap(map);
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?callback=initMap">
+    </script>
+  </body>
+</html>

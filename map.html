@@ -19,7 +19,7 @@
     </style>
     <style>
      #custom-handle {
-       width: 3em;
+       width: 6em;
        height: 1.6em;
        top: 50%;
        margin-top: -.8em;
@@ -31,6 +31,8 @@
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <script>
+    var month= ["January","February","March","April","May","June","July",
+            "August","September","October","November","December"];
     $( function() {
       var handle = $( "#custom-handle" );
       $( "#slider" ).slider({
@@ -38,10 +40,10 @@
         max: 12,
         value: 1,
         create: function() {
-                 handle.text( $( this ).slider( "value" ) );
+                 handle.text( month[$( this ).slider( "value" )-1] );
         },
         slide: function( event, ui ) {
-                 handle.text( ui.value );
+                 handle.text( month[ui.value-1] );
                  refreshMap(ui.value );
         }
 

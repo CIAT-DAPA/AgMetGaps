@@ -1,0 +1,65 @@
+
+
+.climate-vars {
+  width: 100%;
+  text-align: center;
+  /* Made by */
+}
+
+.climate-vars input[type="radio"] {
+  display: none;
+}
+.climate-vars input[type="radio"]:checked + .box {
+  background-color: #009933;
+}
+.climate-vars input[type="radio"]:checked + .box span {
+  color: white;
+  transform: translateY(10px);
+}
+.climate-vars input[type="radio"]:checked + .box span:before {
+  transform: translateY(0px);
+  opacity: 1;
+}
+.climate-vars .box {
+  width: 300px;
+  height: 100px;
+  background-color: #999999;
+  transition: all 250ms ease;
+  will-change: transition;
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  font-family: "Korina BT", sans-serif;
+  font-weight: 900;
+}
+.climate-vars .box:active {
+  transform: translateY(10px);
+}
+.climate-vars .box span {
+  position: absolute;
+  transform: translate(0, 10px);
+  left: 0;
+  right: 0;
+  transition: all 300ms ease;
+  font-size: 1.5em;
+  user-select: none;
+  color: #fff;
+}
+.climate-vars .box span:before {
+  font-size: 1.2em;
+  font-family: FontAwesome;
+  display: block;
+  transform: translateY(-80px);
+  opacity: 0;
+  transition: all 300ms ease-in-out;
+  font-weight: normal;
+  color: white;
+}
+.climate-vars .temperature span:before {
+  content: '\f185';
+}
+.climate-vars .precipitation span:before {
+  content: '\f0c2';
+}
+

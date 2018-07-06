@@ -5,20 +5,21 @@
     <meta charset="utf-8">
     <title>AgMetGaps</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/cupertino/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css'>
+    <link rel="stylesheet" href="css/style.css">
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
       #map {
-        height: 90%;
+        height: 600px;
       }
-      /* Optional: Makes the sample page fill the window. */
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
+      #time-slider {
+        width: 80%;
+        margin: 10px 10% 10px 10%;
       }
+
      #custom-handle {
        width: 3em;
        height: 1.6em;
@@ -27,19 +28,57 @@
        text-align: center;
        line-height: 1.6em;
      }
+
     </style>
 
 
   </head>
   <body>
-    <div id="map"></div>
-    <div id="slider"><div id="custom-handle" class="ui-slider-handle"></div></div>
+    
+    
+  <div class="climate-vars">
+
+             <label>
+               <input type="radio" name="radio" checked/>
+               <div class="precipitation box">
+                 <span>Precipitation</span>
+               </div>
+             </label>
+           
+             <label>
+               <input type="radio" name="radio"/>
+               <div class="temperature box">
+                 <span>Temperature</span>
+               </div>
+             </label>
+           
+             <label>
+               <input type="radio" name="radio" checked/>
+               <div class="precipitation box">
+                 <span>GROC Precipitation</span>
+               </div>
+             </label>
+           
+             <label>
+               <input type="radio" name="radio"/>
+               <div class="temperature box">
+                 <span>GROC Temperature</span>
+               </div>
+             </label>
+  </div>
+
+  <div id="time-slider"><div id="custom-handle" class="ui-slider-handle"></div></div>
+  <div id="map"></div>
+
+
+
+
     <script>
 
     var month= ["DJF","JFM","FMA","MAM","AMJ","MJJ","JJA","JAS","SON","OND","NDJ"];
     $( function() {
       var handle = $( "#custom-handle" );
-      $( "#slider" ).slider({
+      $( "#time-slider" ).slider({
         min: 1,
         max: 12,
         value: 1,

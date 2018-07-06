@@ -1,5 +1,6 @@
-
-
+h1, h2, h3, h4, h5, h6{
+font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
+}
 .climate-vars {
   width: 100%;
   text-align: center;
@@ -30,8 +31,8 @@
   text-align: center;
   cursor: pointer;
   position: relative;
-  font-family: "Korina BT", sans-serif;
-  font-weight: 900;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
+  font-size: 50px;
 }
 .climate-vars .box:active {
   transform: translateY(10px);

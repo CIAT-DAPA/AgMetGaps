@@ -32,7 +32,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   cursor: pointer;
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
-  font-size: 50px;
+
 }
 .climate-vars .box:active {
   transform: translateY(10px);

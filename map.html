@@ -3,7 +3,10 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <title>AgMetGaps Seasonal</title>
+    <title>AgMetGaps</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -16,10 +19,8 @@
         margin: 0;
         padding: 0;
       }
-    </style>
-    <style>
      #custom-handle {
-       width: 6em;
+       width: 3em;
        height: 1.6em;
        top: 50%;
        margin-top: -.8em;
@@ -27,12 +28,15 @@
        line-height: 1.6em;
      }
     </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+
+  </head>
+  <body>
+    <div id="map"></div>
+    <div id="slider"><div id="custom-handle" class="ui-slider-handle"></div></div>
     <script>
-    var month= ["January","February","March","April","May","June","July",
-            "August","September","October","November","December"];
+
+    var month= ["DJF","JFM","FMA","MAM","AMJ","MJJ","JJA","JAS","SON","OND","NDJ"];
     $( function() {
       var handle = $( "#custom-handle" );
       $( "#slider" ).slider({
@@ -49,12 +53,6 @@
 
        });
     } );
-    </script>
-  </head>
-  <body>
-    <div id="map"></div>
-    <div id="slider"><div id="custom-handle" class="ui-slider-handle"></div></div>
-    <script>
 
 
       var historicalOverlay;

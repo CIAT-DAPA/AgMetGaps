@@ -95,7 +95,7 @@
     var month= ["DJF","JFM","FMA","MAM","AMJ","MJJ","JJA","JAS","SON","OND","NDJ"];
     
     $("input[name='radio']" ).click(function() {
-         refreshMap($("#time-slider" ).slider( "value" ) );
+         refreshMap($("input[name='radio']:checked").val(),$("#time-slider" ).slider( "value" ) );
     });
 
 
@@ -110,7 +110,7 @@
         },
         slide: function( event, ui ) {
                  handle.text( month[ui.value-1] );
-                 refreshMap(ui.value );
+                 refreshMap($("input[name='radio']:checked").val(),ui.value );
         }
 
        });
@@ -118,8 +118,8 @@
 
 
       var historicalOverlay;
-      var zoom;
-      var center;
+      var zoom = 3;
+      var center = {lat: 0, lng: 0};
       var imageBounds = {
           north: 50,
           south: -50,
@@ -128,43 +128,15 @@
         };
 
       function initMap() {
-         var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 3,
-          center: {lat: 0, lng: 0}
-        });
-
-        //Set local storage variables.
-        center = map.getCenter();
-        zoom = map.getZoom();
-        
-        google.maps.event.addListener(map,"center_changed", function() {
-            //Set local storage variables.
-            center = map.getCenter();
-            zoom = map.getZoom();
-        });
-        
-        google.maps.event.addListener(map,"zoom_changed", function() {
-            //Set local storage variables.
-           center = map.getCenter();
-           zoom = map.getZoom();
-        });
-
-
-        historicalOverlay = new google.maps.GroundOverlay(
-            "../img/"+$("input[name='radio']:checked").val()+'/1.png',
-            imageBounds);
-        historicalOverlay.setMap(map);
+        refreshMap("precipitation",1);
       }
       
-     function refreshMap(value) {
+     function refreshMap(climateVar,value) {
         var map = new google.maps.Map(document.getElementById('map'), {
           zoom: zoom,
           center: center
         });
 
-
-
-
         //Set local storage variables.
         center = map.getCenter();
         zoom = map.getZoom();
@@ -182,7 +154,7 @@
         });
 
         historicalOverlay = new google.maps.GroundOverlay(
-            "../img/"+$("input[name='radio']:checked").val()+'/'+value+'.png',
+            "../img/"+climateVar+'/'+value+'.png',
             imageBounds);
         historicalOverlay.setMap(map);
       }

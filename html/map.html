@@ -147,6 +147,10 @@
       var map = new google.maps.Map(document.getElementById('map'), {
         zoom: mapZoom,
         center: mapCenter,
+        mapTypeControlOptions: {
+            mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain',
+                    'styled_map']
+          }
       });
 
       var styledMapType = new google.maps.StyledMapType([
@@ -380,7 +384,7 @@
             }
           ]
         }
-      ], { name: 'AgMepGaps Style' });
+      ], { name: 'Dark Style' });
 
       //Associate the styled map with the MapTypeId and set it to display.
       map.mapTypes.set('styled_map', styledMapType);

@@ -10,13 +10,18 @@
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/cupertino/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css'>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
       #map {
-        height: 600px;
-		margin: 30px 5% 10px 5%;
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
       }
       #time-slider {
         margin: 10px 5% 10px 5%;
@@ -146,7 +151,7 @@
 
 
         historicalOverlay = new google.maps.GroundOverlay(
-            "img/"+$("input[name='radio']:checked").val()+'/1.png',
+            "../img/"+$("input[name='radio']:checked").val()+'/1.png',
             imageBounds);
         historicalOverlay.setMap(map);
       }
@@ -177,7 +182,7 @@
         });
 
         historicalOverlay = new google.maps.GroundOverlay(
-            "img/"+$("input[name='radio']:checked").val()+'/'+value+'.png',
+            "../img/"+$("input[name='radio']:checked").val()+'/'+value+'.png',
             imageBounds);
         historicalOverlay.setMap(map);
       }

@@ -136,6 +136,7 @@
     var cropOverlay;
     var mapZoom = 3;
     var mapCenter = { lat: 0, lng: 0 };
+    var mapTypeSelected = 'lightStyledMapType';
     var mapImageBounds = {
       north: 90,
       south: -90,
@@ -165,7 +166,7 @@
       //Associate the styled map with the MapTypeId and set it to display.
       map.mapTypes.set('darkStyledMapType', darkStyledMapType);
       map.mapTypes.set('lightStyledMapType', lightStyledMapType); 
-      map.setMapTypeId('lightStyledMapType');
+      map.setMapTypeId(mapTypeSelected);
 
       //Set local storage variables.
       mapCenter = map.getCenter();
@@ -181,6 +182,11 @@
         //Set local storage variables.
         mapCenter = map.getCenter();
         mapZoom = map.getZoom();
+      });
+
+      google.maps.event.addListener(map, "maptypeid_changed", function () {
+        //Set local storage variables.
+        mapTypeSelected = map.getMapTypeId();
       });
 
       climateOverlay = new google.maps.GroundOverlay(

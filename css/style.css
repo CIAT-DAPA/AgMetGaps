@@ -55,6 +55,10 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   background-color: #009933;
   opacity: .8;   
 }
+.climate-menu input[type="radio"]:checked + .none {
+  background-color: white;
+  opacity: .8;   
+}
 .climate-menu input[type="radio"]+ .box span {
   color: white;
   transform: translateY(40%);
@@ -63,12 +67,20 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   color: white;
   transform: translateY(25%);
 }
+.climate-menu input[type="radio"]+ .none span {
+  color: white;
+  transform: translateY(40%);
+}
+.climate-menu input[type="radio"]:checked + .none span {
+  color: black;
+  transform: translateY(25%);
+}
 
 .climate-menu .box {
   width: 150px;
   height: 35px;
   background-color: #999999;
-  opacity: .7; 
+  opacity: .8; 
   transition: all 250ms ease;
   will-change: transition;
   display: inline-block;
@@ -76,7 +88,18 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   cursor: pointer;
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-
+}
+.climate-menu .none {
+  width: 40px;
+  height: 35px;
+  background-color: black;
+  opacity: .7; 
+  transition: all 250ms ease;
+  will-change: transition;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
 }
 .climate-menu .box span {
   position: absolute;
@@ -94,6 +117,25 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   font-weight: normal;
   color: white;
 }
+.climate-menu .none span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transition: all 300ms ease;
+  font-size: 0.8em;
+  user-select: none;
+  color: #fff;
+}
+.climate-menu .none span:before {
+  font-size: 0.8em;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+  transition: all 300ms ease-in-out;
+  font-weight: normal;
+  color: white;
+}
+
+
+
 
 
 .crop-menu {
@@ -145,7 +187,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   cursor: pointer;
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-
 }
 
 .crop-menu .none {
@@ -159,7 +200,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   cursor: pointer;
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-
 }
 .crop-menu .box span {
   position: absolute;
@@ -177,7 +217,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   font-weight: normal;
   color: white;
 }
-
 .crop-menu .none span {
   position: absolute;
   left: 0;

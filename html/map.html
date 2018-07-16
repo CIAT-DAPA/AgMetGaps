@@ -26,6 +26,13 @@
 
   <div class="climate-menu">
 
+      <label>
+          <input type="radio" name="radio" value="none" checked/>
+          <div class="climate box none">
+            <span>CLEAR</span>
+          </div>
+        </label>
+
     <label>
       <input type="radio" name="radio" value="precipitation" checked/>
       <div class="climate box">
@@ -57,41 +64,41 @@
 
   <div class="crop-menu">
 
-      <label>
-          <input type="radio" name="crop" value="none" checked/>
-          <div class="none box">
-            <span>CLEAR</span>
-          </div>
-      </label>
+    <label>
+      <input type="radio" name="crop" value="none" checked/>
+      <div class="none box">
+        <span>CLEAR</span>
+      </div>
+    </label>
 
-      <label>
-        <input type="radio" name="crop" value="maize" />
-        <div class="crop box">
-          <span>Maize</span>
-        </div>
-      </label>
-  
-      <label>
-        <input type="radio" name="crop" value="rice" />
-        <div class="crop box">
-          <span>Rice</span>
-        </div>
-      </label>  
-      
-      <label>
-        <input type="radio" name="crop" value="wheat" />
-        <div class="precipitation box">
-          <span>Wheat</span>
-        </div>
-      </label>
-  
-      <label>
-        <input type="radio" name="crop" value="wheat_winter" />
-        <div class="crop box">
-          <span>Winter wheat</span>
-        </div>
-      </label>
-    </div>
+    <label>
+      <input type="radio" name="crop" value="maize" />
+      <div class="crop box">
+        <span>Maize</span>
+      </div>
+    </label>
+
+    <label>
+      <input type="radio" name="crop" value="rice" />
+      <div class="crop box">
+        <span>Rice</span>
+      </div>
+    </label>
+
+    <label>
+      <input type="radio" name="crop" value="wheat" />
+      <div class="precipitation box">
+        <span>Wheat</span>
+      </div>
+    </label>
+
+    <label>
+      <input type="radio" name="crop" value="wheat_winter" />
+      <div class="crop box">
+        <span>Winter wheat</span>
+      </div>
+    </label>
+  </div>
 
 
   <div id="time-slider">
@@ -110,7 +117,11 @@
     var month = ["DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "SON", "OND", "NDJ"];
 
     $(".climate-menu input[type='radio']").click(function () {
-      refreshMap($("input[name='radio']:checked").val(), month[$("#time-slider").slider("value")-1]);
+      updateMap();
+    });
+
+    $(".crop-menu input[type='radio']").click(function () {
+      updateMap();
     });
 
 
@@ -147,17 +158,21 @@
 
 
     function initMap() {
-      refreshMap("precipitation", month[0]);
+      refreshMap("precipitation", month[0], "none");
     }
 
-    function refreshMap(climateVar, value) {
+    function updateMap() {
+      refreshMap($(".climate-menu input[type='radio']:checked").val(), month[$("#time-slider").slider("value") - 1], $(".crop-menu input[type='radio']:checked").val());
+    }
+
+    function refreshMap(climateVar, season, crop) {
       var map = new google.maps.Map(document.getElementById('map'), {
         zoom: mapZoom,
         center: mapCenter,
         mapTypeControlOptions: {
-            mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain',
-                    'darkStyledMapType','lightStyledMapType']
-          }
+          mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain',
+            'darkStyledMapType', 'lightStyledMapType']
+        }
       });
 
       var darkStyledMapType = new google.maps.StyledMapType(darkStyle, { name: 'Dark' });
@@ -165,7 +180,7 @@
 
       //Associate the styled map with the MapTypeId and set it to display.
       map.mapTypes.set('darkStyledMapType', darkStyledMapType);
-      map.mapTypes.set('lightStyledMapType', lightStyledMapType); 
+      map.mapTypes.set('lightStyledMapType', lightStyledMapType);
       map.setMapTypeId(mapTypeSelected);
 
       //Set local storage variables.
@@ -189,10 +204,19 @@
         mapTypeSelected = map.getMapTypeId();
       });
 
-      climateOverlay = new google.maps.GroundOverlay(
-        "../img/" + climateVar + '/' + value + '.png',
-        mapImageBounds);
-      climateOverlay.setMap(map);
+      if (climateVar != 'none') {
+        climateOverlay = new google.maps.GroundOverlay(
+          "../img/" + climateVar + '/' + season + '.png',
+          mapImageBounds);
+        climateOverlay.setMap(map);
+      }
+
+      if (crop != 'none') {
+        cropOverlay = new google.maps.GroundOverlay(
+          "../img/" + 'crops' + '/' + crop + '.png',
+          mapImageBounds);
+        cropOverlay.setMap(map);
+      }
     }
   </script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzJRiWK2Iz5Ghwe7Qk-g4FDFxotEOQXtM&callback=initMap"

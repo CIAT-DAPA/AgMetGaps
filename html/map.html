@@ -24,36 +24,74 @@
 <body>
 
 
-  <div class="climate-vars">
+  <div class="climate-menu">
 
     <label>
       <input type="radio" name="radio" value="precipitation" checked/>
-      <div class="precipitation box">
+      <div class="climate box">
         <span>Precipitation</span>
       </div>
     </label>
 
     <label>
       <input type="radio" name="radio" value="temperature" />
-      <div class="temperature box">
+      <div class="climate box">
         <span>Temperature</span>
       </div>
     </label>
 
     <label>
       <input type="radio" name="radio" value="grocprecipitation" />
-      <div class="precipitation box">
+      <div class="climate box">
         <span>GROC Precipitation</span>
       </div>
     </label>
 
     <label>
       <input type="radio" name="radio" value="groctemperature" />
-      <div class="temperature box">
+      <div class="climate box">
         <span>GROC Temperature</span>
       </div>
     </label>
   </div>
+
+  <div class="crop-menu">
+
+      <label>
+          <input type="radio" name="crop" value="none" checked/>
+          <div class="none box">
+            <span>CLEAR</span>
+          </div>
+      </label>
+
+      <label>
+        <input type="radio" name="crop" value="maize" />
+        <div class="crop box">
+          <span>Maize</span>
+        </div>
+      </label>
+  
+      <label>
+        <input type="radio" name="crop" value="rice" />
+        <div class="crop box">
+          <span>Rice</span>
+        </div>
+      </label>  
+      
+      <label>
+        <input type="radio" name="crop" value="wheat" />
+        <div class="precipitation box">
+          <span>Wheat</span>
+        </div>
+      </label>
+  
+      <label>
+        <input type="radio" name="crop" value="wheat_winter" />
+        <div class="crop box">
+          <span>Winter wheat</span>
+        </div>
+      </label>
+    </div>
 
 
   <div id="time-slider">
@@ -71,7 +109,7 @@
 
     var month = ["DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "SON", "OND", "NDJ"];
 
-    $("input[name='radio']").click(function () {
+    $(".climate-menu input[type='radio']").click(function () {
       refreshMap($("input[name='radio']:checked").val(), month[$("#time-slider").slider("value")-1]);
     });
 
@@ -94,7 +132,8 @@
     });
 
 
-    var historicalOverlay;
+    var climateOverlay;
+    var cropOverlay;
     var mapZoom = 3;
     var mapCenter = { lat: 0, lng: 0 };
     var mapImageBounds = {
@@ -144,10 +183,10 @@
         mapZoom = map.getZoom();
       });
 
-      historicalOverlay = new google.maps.GroundOverlay(
+      climateOverlay = new google.maps.GroundOverlay(
         "../img/" + climateVar + '/' + value + '.png',
         mapImageBounds);
-      historicalOverlay.setMap(map);
+      climateOverlay.setMap(map);
     }
   </script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzJRiWK2Iz5Ghwe7Qk-g4FDFxotEOQXtM&callback=initMap"

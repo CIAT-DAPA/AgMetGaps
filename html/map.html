@@ -70,7 +70,7 @@
     var month = ["DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "SON", "OND", "NDJ"];
 
     $("input[name='radio']").click(function () {
-      refreshMap($("input[name='radio']:checked").val(), $("#time-slider").slider("value"));
+      refreshMap($("input[name='radio']:checked").val(), month[$("#time-slider").slider("value")-1]);
     });
 
 
@@ -85,7 +85,7 @@
         },
         slide: function (event, ui) {
           handle.text(month[ui.value - 1]);
-          refreshMap($("input[name='radio']:checked").val(), ui.value);
+          refreshMap($("input[name='radio']:checked").val(), month[ui.value - 1]);
         }
 
       });
@@ -105,7 +105,7 @@
 
 
     function initMap() {
-      refreshMap("precipitation", 1);
+      refreshMap("precipitation", month[0]);
     }
 
     function refreshMap(climateVar, value) {

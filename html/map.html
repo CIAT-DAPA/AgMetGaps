@@ -15,6 +15,7 @@
   <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css'>
   <link rel="stylesheet" href="../css/style.css">
   <script type="text/javascript" src="../js/darkStyle.js"></script>
+  <script type="text/javascript" src="../js/lightStyle.js"></script>
 
 
 
@@ -115,15 +116,17 @@
         center: mapCenter,
         mapTypeControlOptions: {
             mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain',
-                    'styled_map']
+                    'darkStyledMapType','lightStyledMapType']
           }
       });
 
-      var styledMapType = new google.maps.StyledMapType(darkStyle, { name: 'Dark' });
+      var darkStyledMapType = new google.maps.StyledMapType(darkStyle, { name: 'Dark' });
+      var lightStyledMapType = new google.maps.StyledMapType(lightStyle, { name: 'Ligth' });
 
       //Associate the styled map with the MapTypeId and set it to display.
-      map.mapTypes.set('styled_map', styledMapType);
-      map.setMapTypeId('styled_map');
+      map.mapTypes.set('darkStyledMapType', darkStyledMapType);
+      map.mapTypes.set('lightStyledMapType', lightStyledMapType); 
+      map.setMapTypeId('lightStyledMapType');
 
       //Set local storage variables.
       mapCenter = map.getCenter();

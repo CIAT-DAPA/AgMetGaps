@@ -40,7 +40,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 }
 .climate-vars {
   position: absolute;
-  top: 5%;   
+  top: 50px;   
   left: 1%;
   z-index: 4;
   text-align: center;

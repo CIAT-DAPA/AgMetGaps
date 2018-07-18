@@ -208,6 +208,7 @@
         climateOverlay = new google.maps.GroundOverlay(
           "../img/" + climateVar + '/' + season + '.png',
           mapImageBounds);
+        climateOverlay.setOpacity(0.7);
         climateOverlay.setMap(map);
       }
 
@@ -215,6 +216,7 @@
         cropOverlay = new google.maps.GroundOverlay(
           "../img/" + 'crops' + '/' + crop + '.png',
           mapImageBounds);
+        cropOverlay.setOpacity(0.7);
         cropOverlay.setMap(map);
       }
     }

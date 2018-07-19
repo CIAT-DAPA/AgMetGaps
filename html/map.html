@@ -10,11 +10,9 @@
   <link rel='stylesheet' id='et-gf-abel-css' href='https://fonts.googleapis.com/css?family=Abel:400&#038;subset=latin' type='text/css'
     media='all' />
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/cupertino/jquery-ui.css">
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-  <link rel='stylesheet prefetch' href='https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css'>
   <link rel="stylesheet" href="../css/style.css">
-  <script type="text/javascript" src="../js/darkStyle.js"></script>
   <script type="text/javascript" src="../js/lightStyle.js"></script>
 
 
@@ -72,28 +70,28 @@
     </label>
 
     <label>
-      <input type="radio" name="crop" value="maize" />
+      <input type="radio" name="crop" value="Maize_cv" />
       <div class="crop box">
         <span>Maize</span>
       </div>
     </label>
 
     <label>
-      <input type="radio" name="crop" value="rice" />
+      <input type="radio" name="crop" value="rice_cv" />
       <div class="crop box">
         <span>Rice</span>
       </div>
     </label>
 
     <label>
-      <input type="radio" name="crop" value="wheat" />
+      <input type="radio" name="crop" value="wheat_spring_cv" />
       <div class="precipitation box">
-        <span>Wheat</span>
+        <span>Spring Wheat</span>
       </div>
     </label>
 
     <label>
-      <input type="radio" name="crop" value="wheat_winter" />
+      <input type="radio" name="crop" value="wheat_winter_cv" />
       <div class="crop box">
         <span>Winter wheat</span>
       </div>
@@ -170,16 +168,13 @@
         zoom: mapZoom,
         center: mapCenter,
         mapTypeControlOptions: {
-          mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain',
-            'darkStyledMapType', 'lightStyledMapType']
+          mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'lightStyledMapType']
         }
       });
 
-      var darkStyledMapType = new google.maps.StyledMapType(darkStyle, { name: 'Dark' });
-      var lightStyledMapType = new google.maps.StyledMapType(lightStyle, { name: 'Ligth' });
+      var lightStyledMapType = new google.maps.StyledMapType(lightStyle, { name: 'White' });
 
       //Associate the styled map with the MapTypeId and set it to display.
-      map.mapTypes.set('darkStyledMapType', darkStyledMapType);
       map.mapTypes.set('lightStyledMapType', lightStyledMapType);
       map.setMapTypeId(mapTypeSelected);
 
@@ -214,7 +209,7 @@
 
       if (crop != 'none') {
         cropOverlay = new google.maps.GroundOverlay(
-          "../img/" + 'crops' + '/' + crop + '.png',
+          "../img/" + 'yield' + '/' + crop + '.png',
           mapImageBounds);
         cropOverlay.setOpacity(0.7);
         cropOverlay.setMap(map);

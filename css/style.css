@@ -235,3 +235,9 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 }
 
 
+
+
+.ui-widget {
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+  font-size: 1em;
+}

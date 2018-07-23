@@ -86,7 +86,7 @@
     <label>
       <input type="radio" name="crop" value="Wheat_spring_cv" />
       <div class="precipitation box">
-        <span>Spring Wheat</span>
+        <span>Spring wheat</span>
       </div>
     </label>
 
@@ -224,13 +224,13 @@
       var content = [];
       switch (climateVar) {
         case 'precipitation':
-          content.push('<h3 class="ts-map-legend-headline">Precipitation</h3>');
+          content.push('<h3 class="ts-map-legend-headline">Precipitation CV (%)</h3>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + '&lt; 0.33' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + '0.33, 0.66' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + '&gt; 0.66' + '</p>');
           break;
         case 'temperature':
-          content.push('<h3 class="ts-map-legend-headline">Temperature</h3>'); 
+          content.push('<h3 class="ts-map-legend-headline">Temperature SD (&#8451)</h3>'); 
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-1"></div>' + '&lt; 0.5' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-2"></div>' + '0.5, 1.0' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-3"></div>' + '1.0, 1.5' + '</p>');
@@ -250,7 +250,7 @@
           break;
       }
       if (crop != 'none') {
-        content.push('<h3 class="ts-map-legend-headline">Yield</h3>');
+        content.push('<h3 class="ts-map-legend-headline">Yield CV (%)</h3>');
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.33' + '</p>');
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');

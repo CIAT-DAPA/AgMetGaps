@@ -241,3 +241,75 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
   font-size: 1em;
 }
+
+#ts-map-legend {
+  background: #FFF;
+  padding: 0px;
+  margin: 12px;
+  font-size: 1em;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+  overflow: hidden; 
+  text-align: left; 
+  color: rgb(86, 86, 86); 
+  font-family: Roboto,Arial,sans-serif; 
+  -moz-user-select: none; 
+  background-color: rgb(255, 255, 255); padding: 8px; 
+  border-radius: 2px; 
+  background-clip: padding-box; 
+  box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.3); 
+  border-left: 0px none;
+}
+#ts-map-legend p{
+  margin 0 0 0 0 !important;
+
+}
+h3.ts-map-legend-headline{
+  margin:0 !important;
+  padding:0 !important;
+  text-align:center;
+}
+
+.ts-map-legend-color {
+  height: 12px;
+  width: 12px;
+  margin-right: 3px;
+  float: left;
+  border-style: solid;
+  border-width: 1px;
+}
+
+.ts-map-legend-color-yield1 {
+  background: #FFFF00;
+}
+.ts-map-legend-color-yield2 {
+  background: #FFC933;
+}
+.ts-map-legend-color-yield3 {
+  background: #FF0000;
+}
+
+.ts-map-legend-color-precipitation1 {
+  background: #FDFEFE;
+}
+.ts-map-legend-color-precipitation2 {
+  background: #3498DB;
+}
+.ts-map-legend-color-precipitation3 {
+  background: #1B4F72;
+}
+
+.ts-map-legend-color-orange {
+  background: #f18c3e;
+}
+
+.ts-map-legend-color-yellow {
+  background: #f5c155;
+}
+
+.ts-map-legend-color-blue {
+  background: #2a9af5;
+}
+
+.ts-map-legend-color-green {
+  background: #8dc73f;
+}

@@ -24,12 +24,12 @@
 
   <div class="climate-menu">
 
-      <label>
-          <input type="radio" name="radio" value="none" checked/>
-          <div class="climate box none">
-            <span>CLEAR</span>
-          </div>
-        </label>
+    <label>
+      <input type="radio" name="radio" value="none" checked/>
+      <div class="climate box none">
+        <span>CLEAR</span>
+      </div>
+    </label>
 
     <label>
       <input type="radio" name="radio" value="precipitation" checked/>
@@ -214,6 +214,35 @@
         cropOverlay.setOpacity(0.7);
         cropOverlay.setMap(map);
       }
+
+      // Create the legend and display on the map
+      var legend = document.createElement('div');
+      legend.id = 'ts-map-legend';
+
+
+      //assemble html and place in var
+      var content = [];
+      if (climateVar == 'precipitation') {
+        content.push('<h3 class="ts-map-legend-headline">Precipitation</h3>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation1"></div>' + '&lt; 0.33' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation2"></div>' + '0.33, 0.66' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation3"></div>' + '&gt; 0.66' + '</p>');
+      }
+      if (crop != 'none') {
+        content.push('<h3 class="ts-map-legend-headline">Yield</h3>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield1"></div>' + '&lt; 0.33' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield2"></div>' + '0.33, 0.66' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield3"></div>' + '&gt; 0.66' + '</p>');
+      }
+
+      legend.innerHTML = content.join('');
+      legend.index = 1;
+      map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend);
+
+
+
+
+
     }
   </script>
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzJRiWK2Iz5Ghwe7Qk-g4FDFxotEOQXtM&callback=initMap"

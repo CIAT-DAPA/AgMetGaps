@@ -278,38 +278,48 @@ h3.ts-map-legend-headline{
   border-width: 1px;
 }
 
-.ts-map-legend-color-yield1 {
+.ts-map-legend-color-yield-1 {
   background: #FFFF00;
 }
-.ts-map-legend-color-yield2 {
+.ts-map-legend-color-yield-2 {
   background: #FFC933;
 }
-.ts-map-legend-color-yield3 {
+.ts-map-legend-color-yield-3 {
   background: #FF0000;
 }
 
-.ts-map-legend-color-precipitation1 {
+.ts-map-legend-color-precipitation-1 {
   background: #FDFEFE;
 }
-.ts-map-legend-color-precipitation2 {
+.ts-map-legend-color-precipitation-2 {
   background: #3498DB;
 }
-.ts-map-legend-color-precipitation3 {
+.ts-map-legend-color-precipitation-3 {
   background: #1B4F72;
 }
 
-.ts-map-legend-color-orange {
-  background: #f18c3e;
+.ts-map-legend-color-grocprecipitation-1 {
+  background: #CACFD2;
+}
+.ts-map-legend-color-grocprecipitation-2 {
+  background: #85C1E9;
+}
+.ts-map-legend-color-grocprecipitation-3 {
+  background: #21618C;
 }
 
-.ts-map-legend-color-yellow {
-  background: #f5c155;
+.ts-map-legend-color-temperature-1 {
+  background: #FDEDEC;
+}
+.ts-map-legend-color-temperature-2 {
+  background: #F1948A;
+}
+.ts-map-legend-color-temperature-3 {
+  background: #A569BD;
+}
+.ts-map-legend-color-temperature-4 {
+  background: #6C3483;
 }
 
-.ts-map-legend-color-blue {
-  background: #2a9af5;
-}
 
-.ts-map-legend-color-green {
-  background: #8dc73f;
-}
+

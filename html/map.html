@@ -194,6 +194,7 @@
       var map = new google.maps.Map(document.getElementById('map'), {
         zoom: mapZoom,
         center: mapCenter,
+        streetViewControl: false,
         mapTypeControlOptions: {
           mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'lightStyledMapType']
         }

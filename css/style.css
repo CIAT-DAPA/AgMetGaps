@@ -38,147 +38,63 @@ p {
 h1, h2, h3, h4, h5, h6{
 font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 }
-.climate-menu {
+
+.main-menu {
   position: absolute;
-  top: 50px;   
-  left: 1%;
+  top: 30%;   
+  left: 10px;
   z-index: 4;
   text-align: center;
-  /* Made by */
 }
 
-.climate-menu input[type="radio"] {
-  display: none;
-  
+.sub-menu input[type="radio"] {
+  display: none;  
 }
-.climate-menu input[type="radio"]:checked + .box {
+.sub-menu input[type="checkbox"] {
+  display: none;
+}
+.sub-menu input[type="radio"]:checked + .box {
   background-color: #009933;
+  left: 10px;
   opacity: .8;   
 }
-.climate-menu input[type="radio"]:checked + .none {
+.sub-menu input[type="radio"]:checked + .none {
+  background-color: white;
+  opacity: .0;   
+}
+.sub-menu input[type="checkbox"]:checked + .head {
   background-color: white;
   opacity: .8;   
 }
-.climate-menu input[type="radio"]+ .box span {
+.sub-menu input[type="radio"]+ .box span {
   color: white;
   transform: translateY(40%);
 }
-.climate-menu input[type="radio"]:checked + .box span {
+.sub-menu input[type="radio"]:checked + .box span {
   color: white;
   transform: translateY(25%);
 }
-.climate-menu input[type="radio"]+ .none span {
+.sub-menu input[type="radio"]+ .none span {
   color: white;
   transform: translateY(40%);
 }
-.climate-menu input[type="radio"]:checked + .none span {
+.sub-menu input[type="radio"]:checked + .none span {
+  color: black;
+  transform: translateY(25%);
+}
+.sub-menu input[type="checkbox"]+ .head span {
+  color: white;
+  transform: translateY(28%);
+}
+.sub-menu input[type="checkbox"]:checked + .head span {
   color: black;
   transform: translateY(25%);
 }
 
-.climate-menu .box {
-  width: 150px;
-  height: 35px;
-  background-color: #999999;
-  opacity: .8; 
-  transition: all 250ms ease;
-  will-change: transition;
-  display: inline-block;
-  text-align: center;
-  cursor: pointer;
-  position: relative;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-}
-.climate-menu .none {
-  width: 40px;
-  height: 35px;
-  background-color: black;
-  opacity: .7; 
-  transition: all 250ms ease;
-  will-change: transition;
-  text-align: center;
-  cursor: pointer;
-  position: relative;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-}
-.climate-menu .box span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  transition: all 300ms ease;
-  font-size: 1em;
-  user-select: none;
-  color: #fff;
-}
-.climate-menu .box span:before {
-  font-size: 1em;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-  transition: all 300ms ease-in-out;
-  font-weight: normal;
-  color: white;
-}
-.climate-menu .none span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  transition: all 300ms ease;
-  font-size: 0.8em;
-  user-select: none;
-  color: #fff;
-}
-.climate-menu .none span:before {
-  font-size: 0.8em;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-  transition: all 300ms ease-in-out;
-  font-weight: normal;
-  color: white;
-}
-
-
-
-
-
-.crop-menu {
-  position: absolute;
-  top: 40%;   
-  left: 1%;
-  z-index: 4;
-  text-align: center;
-  /* Made by */
-}
-
-.crop-menu input[type="radio"] {
-  display: none;
-  
-}
-.crop-menu input[type="radio"]:checked + .box {
-  background-color: #009933;
-  opacity: .8;   
-}
-.crop-menu input[type="radio"]:checked + .none {
-  background-color: white;
-  opacity: .8;   
-}
-.crop-menu input[type="radio"]+ .box span {
-  color: white;
-  transform: translateY(40%);
-}
-.crop-menu input[type="radio"]:checked + .box span {
-  color: white;
-  transform: translateY(25%);
-}
-.crop-menu input[type="radio"]+ .none span {
-  color: white;
-  transform: translateY(40%);
-}
-.crop-menu input[type="radio"]:checked + .none span {
-  color: black;
-  transform: translateY(25%);
-}
-
-.crop-menu .box {
+.sub-menu .box {
   width: 100px;
   height: 35px;
+  left: 5px;
   background-color: #999999;
   opacity: .7; 
   transition: all 250ms ease;
@@ -189,9 +105,23 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
 }
 
-.crop-menu .none {
+.sub-menu .none {
   width: 100px;
-  height: 25px;
+  height: 20px;
+  left: 5px;
+  background-color: #666666;
+  opacity: .7; 
+  transition: all 250ms ease;
+  will-change: transition;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+}
+
+.sub-menu .head {
+  width: 110px;
+  height: 30px;
   background-color: black;
   opacity: .7; 
   transition: all 250ms ease;
@@ -201,33 +131,54 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
 }
-.crop-menu .box span {
+
+.sub-menu .box span {
+  font-size: 1em;
   position: absolute;
   left: 0;
   right: 0;
   transition: all 300ms ease;
-  font-size: 1em;
   user-select: none;
   color: #fff;
 }
-.crop-menu .box span:before {
+.sub-menu .box span:before {
   font-size: 1em;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
   transition: all 300ms ease-in-out;
   font-weight: normal;
   color: white;
 }
-.crop-menu .none span {
+.sub-menu .none span {
+  font-size: 0.6em;
   position: absolute;
   left: 0;
   right: 0;
   transition: all 300ms ease;
-  font-size: 0.8em;
   user-select: none;
   color: #fff;
 }
-.crop-menu .none span:before {
+.sub-menu .none span:before {
+    font-size: 0.6em;
   font-size: 0.8em;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+  transition: all 300ms ease-in-out;
+  font-weight: normal;
+  color: white;
+}
+
+.sub-menu .head span {
+  font-size: 1em;
+  position: absolute;
+  left: 0;
+  right: 0;
+  transition: all 300ms ease;
+  user-select: none;
+  color: #fff;
+}
+
+.sub-menu .head span:before {
+  font-size: 1em;
+  font-weight: bold;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
   transition: all 300ms ease-in-out;
   font-weight: normal;
@@ -241,6 +192,8 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
   font-size: 1em;
 }
+
+
 
 #ts-map-legend {
   background: #FFF;

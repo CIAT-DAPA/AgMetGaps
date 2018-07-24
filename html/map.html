@@ -21,81 +21,99 @@
 
 <body>
 
+  <div class="main-menu">
+    <div id="climate-menu" class="sub-menu">
 
-  <div class="climate-menu">
+      <label>
+        <input type="checkbox" id="climate-checkbox" checked/>
+        <div class="climate head">
+          <span>Climate</span>
+        </div>
+      </label>
+      <div id="climate-opts">
+        <label>
+          <input type="radio" name="radio" value="precipitation" checked/>
+          <div class="climate box">
+            <span>Precipitation</span>
+          </div>
+        </label>
 
-    <label>
-      <input type="radio" name="radio" value="none" checked/>
-      <div class="climate box none">
-        <span>CLEAR</span>
+        <label>
+          <input type="radio" name="radio" value="temperature" />
+          <div class="climate box">
+            <span>Temperature</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="radio" value="grocprecipitation" />
+          <div class="climate box">
+            <span>GROC Precip.</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="radio" value="groctemperature" />
+          <div class="climate box">
+            <span>GROC Temp.</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="radio" value="none" />
+          <div class="climate none">
+            <span>CLEAR</span>
+          </div>
+        </label>
       </div>
-    </label>
+    </div>
 
-    <label>
-      <input type="radio" name="radio" value="precipitation" checked/>
-      <div class="climate box">
-        <span>Precipitation</span>
+
+    <div id="crop-menu" class="sub-menu">
+
+      <label>
+        <input type="checkbox" id="crop-checkbox" checked/>
+        <div class="crop head">
+          <span>Yield</span>
+        </div>
+      </label>
+      <div id="crop-opts">
+        <label>
+          <input type="radio" name="crop" value="Maize_cv" />
+          <div class="crop box">
+            <span>Maize</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="crop" value="Rice_cv" />
+          <div class="crop box">
+            <span>Rice</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="crop" value="Wheat_spring_cv" />
+          <div class="precipitation box">
+            <span>Spring wheat</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="crop" value="Wheat_winter_cv" />
+          <div class="crop box">
+            <span>Winter wheat</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="crop" value="none" checked/>
+          <div class="none box">
+            <span>CLEAR</span>
+          </div>
+        </label>
       </div>
-    </label>
-
-    <label>
-      <input type="radio" name="radio" value="temperature" />
-      <div class="climate box">
-        <span>Temperature</span>
-      </div>
-    </label>
-
-    <label>
-      <input type="radio" name="radio" value="grocprecipitation" />
-      <div class="climate box">
-        <span>GROC Precipitation</span>
-      </div>
-    </label>
-
-    <label>
-      <input type="radio" name="radio" value="groctemperature" />
-      <div class="climate box">
-        <span>GROC Temperature</span>
-      </div>
-    </label>
-  </div>
-
-  <div class="crop-menu">
-
-    <label>
-      <input type="radio" name="crop" value="none" checked/>
-      <div class="none box">
-        <span>CLEAR</span>
-      </div>
-    </label>
-
-    <label>
-      <input type="radio" name="crop" value="Maize_cv" />
-      <div class="crop box">
-        <span>Maize</span>
-      </div>
-    </label>
-
-    <label>
-      <input type="radio" name="crop" value="Rice_cv" />
-      <div class="crop box">
-        <span>Rice</span>
-      </div>
-    </label>
-
-    <label>
-      <input type="radio" name="crop" value="Wheat_spring_cv" />
-      <div class="precipitation box">
-        <span>Spring wheat</span>
-      </div>
-    </label>
-
-    <label>
-      <input type="radio" name="crop" value="Wheat_winter_cv" />
-      <div class="crop box">
-        <span>Winter wheat</span>
-      </div>
-    </label>
+    </div>
   </div>
 
 
@@ -114,12 +132,19 @@
 
     var month = ["DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "SON", "OND", "NDJ"];
 
-    $(".climate-menu input[type='radio']").click(function () {
+    $("#climate-menu input[type='radio']").click(function () {
       updateMap();
     });
 
-    $(".crop-menu input[type='radio']").click(function () {
+    $("#crop-menu input[type='radio']").click(function () {
       updateMap();
+    });
+
+    $("#climate-checkbox").click(function () {
+      $("#climate-opts").toggle({ direction: "top" }, 1000);
+    });
+    $("#crop-checkbox").click(function () {
+      $("#crop-opts").toggle({ direction: "top" }, 1000);
     });
 
 
@@ -156,14 +181,14 @@
 
 
     function initMap() {
-      refreshMap("precipitation", month[0], "none");
+      refreshMap("precipitation", "none", month[0]);
     }
 
     function updateMap() {
-      refreshMap($(".climate-menu input[type='radio']:checked").val(), month[$("#time-slider").slider("value") - 1], $(".crop-menu input[type='radio']:checked").val());
+      refreshMap($("#climate-menu input[type='radio']:checked").val(), $("#crop-menu input[type='radio']:checked").val(), month[$("#time-slider").slider("value") - 1], );
     }
 
-    function refreshMap(climateVar, season, crop) {
+    function refreshMap(climateVar, crop, season) {
       var map = new google.maps.Map(document.getElementById('map'), {
         zoom: mapZoom,
         center: mapCenter,
@@ -230,7 +255,7 @@
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + '&gt; 0.66' + '</p>');
           break;
         case 'temperature':
-          content.push('<h3 class="ts-map-legend-headline">Temperature SD (&#8451)</h3>'); 
+          content.push('<h3 class="ts-map-legend-headline">Temperature SD (&#8451)</h3>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-1"></div>' + '&lt; 0.5' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-2"></div>' + '0.5, 1.0' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-3"></div>' + '1.0, 1.5' + '</p>');

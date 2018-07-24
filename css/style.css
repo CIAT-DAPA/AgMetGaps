@@ -251,7 +251,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   overflow: hidden; 
   text-align: left; 
   color: rgb(86, 86, 86); 
-  font-family: Roboto,Arial,sans-serif; 
   -moz-user-select: none; 
   background-color: rgb(255, 255, 255); padding: 8px; 
   border-radius: 2px; 
@@ -263,6 +262,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   margin 0 0 0 0 !important;
 
 }
+
 h3.ts-map-legend-headline{
   margin:0 !important;
   padding:0 !important;

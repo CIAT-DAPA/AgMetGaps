@@ -188,6 +188,14 @@
         zoom: mapZoom,
         center: mapCenter,
         streetViewControl: false,
+        zoomControl: true,
+        zoomControlOptions: {
+          position: google.maps.ControlPosition.TOP_LEFT
+        },
+        fullscreenControl : true,
+        fullscreenControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
         mapTypeControlOptions: {
           mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'lightStyledMapType']
         }
@@ -292,8 +300,8 @@
       }
       legend.innerHTML = content.join('');
       legend.index = 1;
-      map.controls[google.maps.ControlPosition.RIGHT_TOP].clear();
-      map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend);
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].clear();
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend);
 
 
 

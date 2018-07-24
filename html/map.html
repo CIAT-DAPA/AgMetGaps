@@ -25,7 +25,7 @@
     <div id="climate-menu" class="sub-menu">
 
       <label>
-        <input type="checkbox" id="climate-checkbox" checked/>
+        <input type="checkbox" id="climate-checkbox"/>
         <div class="climate head">
           <span>Climate</span>
         </div>
@@ -72,7 +72,7 @@
     <div id="crop-menu" class="sub-menu">
 
       <label>
-        <input type="checkbox" id="crop-checkbox" checked/>
+        <input type="checkbox" id="crop-checkbox"/>
         <div class="crop head">
           <span>Yield</span>
         </div>
@@ -182,6 +182,8 @@
 
     function initMap() {
       refreshMap("precipitation", "none", month[0]);
+      $("#climate-opts").toggle({ direction: "top" }, 1000);
+      $("#crop-opts").toggle({ direction: "top" }, 1000);
     }
 
     function updateMap() {

@@ -25,7 +25,7 @@
     <div id="climate-menu" class="sub-menu">
 
       <label>
-        <input type="checkbox" id="climate-checkbox"/>
+        <input type="checkbox" id="climate-checkbox" />
         <div class="climate head">
           <span>Climate</span>
         </div>
@@ -72,7 +72,7 @@
     <div id="crop-menu" class="sub-menu">
 
       <label>
-        <input type="checkbox" id="crop-checkbox"/>
+        <input type="checkbox" id="crop-checkbox" />
         <div class="crop head">
           <span>Yield</span>
         </div>
@@ -177,21 +177,14 @@
       east: 180,
       west: -180
     };
+    var map
+
 
 
 
     function initMap() {
-      refreshMap("precipitation", "none", month[0]);
-      $("#climate-opts").toggle({ direction: "top" }, 1000);
-      $("#crop-opts").toggle({ direction: "top" }, 1000);
-    }
 
-    function updateMap() {
-      refreshMap($("#climate-menu input[type='radio']:checked").val(), $("#crop-menu input[type='radio']:checked").val(), month[$("#time-slider").slider("value") - 1], );
-    }
-
-    function refreshMap(climateVar, crop, season) {
-      var map = new google.maps.Map(document.getElementById('map'), {
+      map = new google.maps.Map(document.getElementById('map'), {
         zoom: mapZoom,
         center: mapCenter,
         streetViewControl: false,
@@ -226,6 +219,20 @@
         //Set local storage variables.
         mapTypeSelected = map.getMapTypeId();
       });
+
+      refreshMap("precipitation", "Maize_cv", month[0]); // initialize all
+      cropOverlay.setMap(null); // remove crop layer at init
+      $("#climate-opts").toggle({ direction: "top" }, 1000);
+      $("#crop-opts").toggle({ direction: "top" }, 1000);
+    }
+
+    function updateMap() {
+        climateOverlay.setMap(null);
+        cropOverlay.setMap(null);
+      refreshMap($("#climate-menu input[type='radio']:checked").val(), $("#crop-menu input[type='radio']:checked").val(), month[$("#time-slider").slider("value") - 1], );
+    }
+
+    function refreshMap(climateVar, crop, season) {
 
       if (climateVar != 'none') {
         climateOverlay = new google.maps.GroundOverlay(
@@ -283,9 +290,9 @@
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');
       }
-
       legend.innerHTML = content.join('');
       legend.index = 1;
+      map.controls[google.maps.ControlPosition.RIGHT_TOP].clear();
       map.controls[google.maps.ControlPosition.RIGHT_TOP].push(legend);
 
 

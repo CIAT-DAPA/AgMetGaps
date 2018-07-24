@@ -212,14 +212,13 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   border-left: 0px none;
 }
 #ts-map-legend p{
-  margin 0 0 0 0 !important;
-
+  margin: 0 0 0 0 !important;
 }
 
 h3.ts-map-legend-headline{
   margin:0 !important;
   padding:0 !important;
-  text-align:center;
+  text-align: left;
 }
 
 .ts-map-legend-color {

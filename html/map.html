@@ -159,7 +159,7 @@
         },
         slide: function (event, ui) {
           handle.text(month[ui.value - 1]);
-          refreshMap($("input[name='radio']:checked").val(), month[ui.value - 1]);
+          updateMap();
         }
 
       });

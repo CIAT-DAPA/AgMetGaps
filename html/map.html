@@ -1,1 +1,373 @@
-<meta http-equiv="refresh" content="0; url=https://ciat-dapa.github.io/AgMetGaps/" />
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>AgMetGaps</title>
+  <link rel='stylesheet' id='divi-fonts-css' href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800&#038;subset=latin,latin-ext'
+    type='text/css' media='all' />
+  <link rel='stylesheet' id='et-gf-abel-css' href='https://fonts.googleapis.com/css?family=Abel:400&#038;subset=latin' type='text/css'
+    media='all' />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+  <link rel="stylesheet" href="../css/style.css">
+  <script type="text/javascript" src="../js/lightStyle.js"></script>
+
+
+
+</head>
+
+<body>
+
+  <div class="main-menu">
+    <div id="climate-menu" class="sub-menu">
+
+      <label>
+        <input type="checkbox" id="climate-checkbox" />
+        <div class="climate head">
+          <span><i class="fas fa-layer-group"> </i>   Climate</span>
+        </div>
+      </label>
+      <div id="climate-opts">
+        <label>
+          <input type="radio" name="radio" value="precipitation" checked/>
+          <div class="climate box">
+            <span>Precipitation</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="radio" value="temperature" />
+          <div class="climate box">
+            <span>Temperature</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="radio" value="grocprecipitation" />
+          <div class="climate box">
+            <span>GROC Precip.</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="radio" value="groctemperature" />
+          <div class="climate box">
+            <span>GROC Temp.</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="radio" value="none" />
+          <div class="climate none">
+            <span>CLEAR</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+
+    <div id="crop-menu" class="sub-menu">
+
+      <label>
+        <input type="checkbox" id="crop-checkbox" />
+        <div class="crop head">
+          <span><i class="fas fa-layer-group"> </i>   Yield</span>
+        </div>
+      </label>
+      <div id="crop-opts">
+        <label>
+          <input type="radio" name="crop" value="Maize_cv" />
+          <div class="crop box">
+            <span>Maize</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="crop" value="Rice_cv" />
+          <div class="crop box">
+            <span>Rice</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="crop" value="Wheat_spring_cv" />
+          <div class="precipitation box">
+            <span>Spring wheat</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="crop" value="Wheat_winter_cv" />
+          <div class="crop box">
+            <span>Winter wheat</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="crop" value="none" checked/>
+          <div class="none box">
+            <span>CLEAR</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div id="region-menu" class="sub-menu">
+
+      <label>
+        <input type="checkbox" id="regions-checkbox" checked />
+        <div class="regions head">
+          <span><i class="fas fa-globe-africa"></i>   Regions</span>
+        </div>
+      </label>
+      <div id="crop-opts">
+
+      </div>
+    </div>
+  </div>
+
+
+  <div id="time-slider">
+    <div id="custom-handle" class="ui-slider-handle"></div>
+  </div>
+  </div>
+
+
+  <div id="map"></div>
+
+
+
+
+  <script>
+
+    var month = ["DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "SON", "OND", "NDJ"];
+
+    $("#climate-menu input[type='radio']").click(function () {
+      updateMap();
+    });
+
+    $("#crop-menu input[type='radio']").click(function () {
+      updateMap();
+    });
+
+    $("#climate-checkbox").click(function () {
+      $("#climate-opts").toggle({ direction: "top" }, 1000);
+    });
+    $("#crop-checkbox").click(function () {
+      $("#crop-opts").toggle({ direction: "top" }, 1000);
+    });
+    $("#regions-checkbox").click(function () {
+      updateMap();
+    });
+
+
+
+    $(function () {
+      var handle = $("#custom-handle");
+      $("#time-slider").slider({
+        min: 1,
+        max: 11,
+        value: 1,
+        create: function () {
+          handle.text(month[$(this).slider("value") - 1]);
+        },
+        slide: function (event, ui) {
+          handle.text(month[ui.value - 1]);
+          updateMap();
+        }
+
+      });
+    });
+
+
+    var climateOverlay;
+    var cropOverlay;
+    var regionsOverlay
+    var mapZoom = 3;
+    var mapCenter = { lat: 0, lng: 0 };
+    var mapTypeSelected = 'lightStyledMapType';
+    var mapImageBounds = {
+      north: 90,
+      south: -90,
+      east: 180,
+      west: -180
+    };
+    var map
+
+
+
+
+    function initMap() {
+
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: mapZoom,
+        center: mapCenter,
+        streetViewControl: false,
+        zoomControl: true,
+        zoomControlOptions: {
+          position: google.maps.ControlPosition.TOP_LEFT
+        },
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+          position: google.maps.ControlPosition.RIGHT_BOTTOM
+        },
+        mapTypeControlOptions: {
+          mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain', 'lightStyledMapType']
+        }
+      });
+
+      var lightStyledMapType = new google.maps.StyledMapType(lightStyle, { name: 'White' });
+
+      //Associate the styled map with the MapTypeId and set it to display.
+      map.mapTypes.set('lightStyledMapType', lightStyledMapType);
+      map.setMapTypeId(mapTypeSelected);
+
+      //Set local storage variables.
+      mapCenter = map.getCenter();
+      mapZoom = map.getZoom();
+
+      google.maps.event.addListener(map, "center_changed", function () {
+        //Set local storage variables.
+        mapCenter = map.getCenter();
+        mapZoom = map.getZoom();
+      });
+
+      google.maps.event.addListener(map, "zoom_changed", function () {
+        //Set local storage variables.
+        mapCenter = map.getCenter();
+        mapZoom = map.getZoom();
+      });
+
+      google.maps.event.addListener(map, "maptypeid_changed", function () {
+        //Set local storage variables.
+        mapTypeSelected = map.getMapTypeId();
+      });
+
+      refreshMap("precipitation", "Maize_cv", true, month[0]); // initialize all
+      climateOverlay.setMap(null);
+      cropOverlay.setMap(null);
+      regionsOverlay.setMap(null);
+      $("#climate-opts").toggle({ direction: "top" }, 1000);
+      $("#crop-opts").toggle({ direction: "top" }, 1000);
+      refreshMap("precipitation", "none", true, month[0]);
+    }
+
+    function updateMap() {
+      climateOverlay.setMap(null);
+      cropOverlay.setMap(null);
+      regionsOverlay.setMap(null);
+      refreshMap($("#climate-menu input[type='radio']:checked").val(),
+        $("#crop-menu input[type='radio']:checked").val(),
+        $("#regions-checkbox").is(":checked"),
+        month[$("#time-slider").slider("value") - 1]);
+    }
+
+    function refreshMap(climateVar, crop, regions, season) {
+
+      if (climateVar != 'none') {
+        climateOverlay = new google.maps.GroundOverlay(
+          "../img/" + climateVar + '/' + season + '.png',
+          mapImageBounds);
+        climateOverlay.setOpacity(0.7);
+        climateOverlay.setMap(map);
+        $("#time-slider").fadeIn();
+      }else{
+        $("#time-slider").fadeOut();
+      }
+
+      if (crop != 'none') {
+        cropOverlay = new google.maps.GroundOverlay(
+          "../img/" + 'yield' + '/' + crop + '.png',
+          mapImageBounds);
+        cropOverlay.setOpacity(0.7);
+        cropOverlay.setMap(map);
+      }
+
+      if (regions) {
+        regionsOverlay = new google.maps.GroundOverlay(
+          "../img/" + 'LobelRegions' + '.png',
+          mapImageBounds);
+        regionsOverlay.setOpacity(0.95);
+        regionsOverlay.setMap(map);
+      }
+
+      // Create the legend and display on the map
+      var legend = document.createElement('div');
+      legend.id = 'ts-map-legend';
+
+
+      //assemble html and place in var
+      var content = [];
+      switch (climateVar) {
+        case 'precipitation':
+          content.push('<h3 class="ts-map-legend-headline">'+season+' Precipitation CV (%)</h3>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + '&lt; 0.33' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + '0.33, 0.66' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + '&gt; 0.66' + '</p>');
+          break;
+        case 'temperature':
+          content.push('<h3 class="ts-map-legend-headline">'+season+' Temperature SD (&#8451)</h3>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-1"></div>' + '&lt; 0.5' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-2"></div>' + '0.5, 1.0' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-3"></div>' + '1.0, 1.5' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-4"></div>' + '&gt; 1.5 ' + '</p>');
+          break;
+        case 'grocprecipitation':
+          content.push('<h3 class="ts-map-legend-headline">'+season+' GROC Precipitation</h3>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
+          break;
+        case 'groctemperature':
+          content.push('<h3 class="ts-map-legend-headline">'+season+' GROC temperature</h3>'); // uses same color as precipitation
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
+          break;
+      }
+      if (crop != 'none') {
+        if (climateVar != 'none') {
+          content.push('<h3></h3>');
+        }
+        content.push('<h3 class="ts-map-legend-headline">Yield CV (%)</h3>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.33' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');
+      }
+      if (regions) {
+        if (climateVar != 'none' || crop != 'none') {
+          content.push('<h3></h3>');
+        }
+        content.push('<h3 class="ts-map-legend-headline">Regions</h3>');
+        content.push('<p>' + 'Central America' + '</p>');
+        content.push('<p>' + 'Western Africa' + '</p>');
+        content.push('<p>' + 'Eastern Africa' + '</p>');
+        content.push('<p>' + 'Southern Asia' + '</p>');
+        content.push('<p>' + 'Easthern Asia' + '</p>');
+      }
+      legend.innerHTML = content.join('');
+      legend.index = 1;
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].clear();
+      map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend);
+
+
+
+
+
+    }
+  </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDzJRiWK2Iz5Ghwe7Qk-g4FDFxotEOQXtM&callback=initMap"
+  />
+  <script src="https://maps.googleapis.com/maps/api/staticmap?key=AIzaSyDzJRiWK2Iz5Ghwe7Qk-g4FDFxotEOQXtM&center=21.61520658671325,91.99239959716793&zoom=5&format=png&maptype=roadmap&style=element:geometry%7Ccolor:0x212121&style=element:labels.icon%7Cvisibility:off&style=element:labels.text.fill%7Ccolor:0x757575&style=element:labels.text.stroke%7Ccolor:0x212121&style=feature:administrative%7Celement:geometry%7Ccolor:0x757575&style=feature:administrative.country%7Celement:geometry.stroke%7Cvisibility:on&style=feature:administrative.country%7Celement:labels.text.fill%7Ccolor:0x9e9e9e&style=feature:administrative.land_parcel%7Cvisibility:off&style=feature:administrative.locality%7Celement:labels.text.fill%7Ccolor:0xbdbdbd%7Cvisibility:off&style=feature:landscape%7Cvisibility:on&style=feature:poi%7Celement:labels.text.fill%7Ccolor:0x757575&style=feature:poi.park%7Celement:geometry%7Ccolor:0x181818&style=feature:poi.park%7Celement:geometry.stroke%7Cvisibility:on&style=feature:poi.park%7Celement:labels.text.fill%7Ccolor:0x616161&style=feature:poi.park%7Celement:labels.text.stroke%7Ccolor:0x1b1b1b&style=feature:road%7Celement:geometry.fill%7Ccolor:0x2c2c2c&style=feature:road%7Celement:labels.text.fill%7Ccolor:0x8a8a8a&style=feature:road.arterial%7Cvisibility:off&style=feature:road.arterial%7Celement:geometry%7Ccolor:0x373737&style=feature:road.highway%7Celement:geometry%7Ccolor:0x3c3c3c&style=feature:road.highway%7Celement:labels%7Cvisibility:off&style=feature:road.highway.controlled_access%7Celement:geometry%7Ccolor:0x4e4e4e&style=feature:road.local%7Cvisibility:off&style=feature:road.local%7Celement:labels.text.fill%7Ccolor:0x616161&style=feature:transit%7Celement:labels.text.fill%7Ccolor:0x757575&style=feature:water%7Celement:geometry%7Ccolor:0x000000&style=feature:water%7Celement:geometry.stroke%7Cvisibility:on&style=feature:water%7Celement:labels.text.fill%7Ccolor:0x3d3d3d&size=480x360"
+  />
+
+
+
+  </script>
+</body>
+
+</html>

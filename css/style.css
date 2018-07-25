@@ -132,6 +132,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   right: 0;
   transition: all 300ms ease;
   user-select: none;
+  text-align: center;
   color: #fff;
 }
 .sub-menu .none span:before {

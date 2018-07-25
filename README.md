@@ -1,6 +1,8 @@
 # AgMetGaps
-Servicios de información agro-meteorológica para cerrar brechas productivas
+The AgMetGaps Project aims to scale-up climate services for improved agricultural outcomes
 
-Objetivo
+visit https://ciat-dapa.github.io/AgMetGaps/html/map.html
 
-Identificar “hotspots” de servicios climáticos. “Hotspots” de servicios climáticos se definen como áreas geográficas en las que los servicios climáticos tienen el potencial para servir como una herramienta efectiva en cerrar las brechas de rendimiento en la producción agrícola.
+
+The International Center for Tropical Agriculture (CIAT) 
+The International Research Institute for Climate and Society (IRI) at Columbia University

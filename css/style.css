@@ -88,6 +88,8 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   right: 0;
   transition: all 300ms ease;
   user-select: none;
+  text-align: left;
+  margin-left: 5px;
   color: #fff;
 }
 .sub-menu .box span:before {
@@ -175,7 +177,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   margin-left: 5px;
   color: #fff;
 }
-
 .sub-menu .head span:before {
   font-size: 1em;
   font-weight: bold;

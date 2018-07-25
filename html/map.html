@@ -273,6 +273,9 @@
           mapImageBounds);
         climateOverlay.setOpacity(0.7);
         climateOverlay.setMap(map);
+        $("#time-slider").fadeIn();
+      }else{
+        $("#time-slider").fadeOut();
       }
 
       if (crop != 'none') {

@@ -115,12 +115,12 @@
       </div>
     </div>
 
-    <div id="zone-menu" class="sub-menu">
+    <div id="region-menu" class="sub-menu">
 
       <label>
-        <input type="checkbox" id="zones-checkbox" checked />
-        <div class="zones head">
-          <span>Zones</span>
+        <input type="checkbox" id="regions-checkbox" checked />
+        <div class="regions head">
+          <span>Regions</span>
         </div>
       </label>
       <div id="crop-opts">
@@ -159,7 +159,7 @@
     $("#crop-checkbox").click(function () {
       $("#crop-opts").toggle({ direction: "top" }, 1000);
     });
-    $("#zones-checkbox").click(function () {
+    $("#regions-checkbox").click(function () {
       updateMap();
     });
 
@@ -185,7 +185,7 @@
 
     var climateOverlay;
     var cropOverlay;
-    var zonesOverlay
+    var regionsOverlay
     var mapZoom = 3;
     var mapCenter = { lat: 0, lng: 0 };
     var mapTypeSelected = 'lightStyledMapType';
@@ -247,22 +247,25 @@
       });
 
       refreshMap("precipitation", "Maize_cv", true, month[0]); // initialize all
-      cropOverlay.setMap(null); // remove crop layer at init
+      climateOverlay.setMap(null);
+      cropOverlay.setMap(null);
+      regionsOverlay.setMap(null);
       $("#climate-opts").toggle({ direction: "top" }, 1000);
       $("#crop-opts").toggle({ direction: "top" }, 1000);
+      refreshMap("precipitation", "none", true, month[0]);
     }
 
     function updateMap() {
       climateOverlay.setMap(null);
       cropOverlay.setMap(null);
-      zonesOverlay.setMap(null);
+      regionsOverlay.setMap(null);
       refreshMap($("#climate-menu input[type='radio']:checked").val(),
         $("#crop-menu input[type='radio']:checked").val(),
-        $("#zones-checkbox").is(":checked"),
+        $("#regions-checkbox").is(":checked"),
         month[$("#time-slider").slider("value") - 1], );
     }
 
-    function refreshMap(climateVar, crop, zones, season) {
+    function refreshMap(climateVar, crop, regions, season) {
 
       if (climateVar != 'none') {
         climateOverlay = new google.maps.GroundOverlay(
@@ -280,12 +283,12 @@
         cropOverlay.setMap(map);
       }
 
-      if (zones) {
-        zonesOverlay = new google.maps.GroundOverlay(
+      if (regions) {
+        regionsOverlay = new google.maps.GroundOverlay(
           "../img/" + 'LobelRegions' + '.png',
           mapImageBounds);
-        zonesOverlay.setOpacity(0.95);
-        zonesOverlay.setMap(map);
+        regionsOverlay.setOpacity(0.95);
+        regionsOverlay.setMap(map);
       }
 
       // Create the legend and display on the map
@@ -323,10 +326,24 @@
           break;
       }
       if (crop != 'none') {
+        if (climateVar != 'none') {
+          content.push('<h3></h3>');
+        }
         content.push('<h3 class="ts-map-legend-headline">Yield CV (%)</h3>');
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.33' + '</p>');
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');
+      }
+      if (regions) {
+        if (climateVar != 'none' || crop != 'none') {
+          content.push('<h3></h3>');
+        }
+        content.push('<h3 class="ts-map-legend-headline">Regions</h3>');
+        content.push('<p>' + 'Central America' + '</p>');
+        content.push('<p>' + 'Western Africa' + '</p>');
+        content.push('<p>' + 'Eastern Africa' + '</p>');
+        content.push('<p>' + 'Southern Asia' + '</p>');
+        content.push('<p>' + 'Easthern Asia' + '</p>');
       }
       legend.innerHTML = content.join('');
       legend.index = 1;

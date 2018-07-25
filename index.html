@@ -270,7 +270,7 @@
 
       if (climateVar != 'none') {
         climateOverlay = new google.maps.GroundOverlay(
-          "../img/" + climateVar + '/' + season + '.png',
+          "img/" + climateVar + '/' + season + '.png',
           mapImageBounds);
         climateOverlay.setOpacity(0.7);
         climateOverlay.setMap(map);
@@ -281,7 +281,7 @@
 
       if (crop != 'none') {
         cropOverlay = new google.maps.GroundOverlay(
-          "../img/" + 'yield' + '/' + crop + '.png',
+          "img/" + 'yield' + '/' + crop + '.png',
           mapImageBounds);
         cropOverlay.setOpacity(0.7);
         cropOverlay.setMap(map);
@@ -289,7 +289,7 @@
 
       if (regions) {
         regionsOverlay = new google.maps.GroundOverlay(
-          "../img/" + 'LobelRegions' + '.png',
+          "img/" + 'LobelRegions' + '.png',
           mapImageBounds);
         regionsOverlay.setOpacity(0.95);
         regionsOverlay.setMap(map);

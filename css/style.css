@@ -53,17 +53,11 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 .sub-menu input[type="checkbox"] {
   display: none;
 }
+
+
 .sub-menu input[type="radio"]:checked + .box {
   background-color: #009933;
   left: 10px;
-  opacity: .8;   
-}
-.sub-menu input[type="radio"]:checked + .none {
-  background-color: white;
-  opacity: .0;   
-}
-.sub-menu input[type="checkbox"]:checked + .head {
-  background-color: white;
   opacity: .8;   
 }
 .sub-menu input[type="radio"]+ .box span {
@@ -74,23 +68,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   color: white;
   transform: translateY(25%);
 }
-.sub-menu input[type="radio"]+ .none span {
-  color: white;
-  transform: translateY(40%);
-}
-.sub-menu input[type="radio"]:checked + .none span {
-  color: black;
-  transform: translateY(25%);
-}
-.sub-menu input[type="checkbox"]+ .head span {
-  color: white;
-  transform: translateY(28%);
-}
-.sub-menu input[type="checkbox"]:checked + .head span {
-  color: black;
-  transform: translateY(25%);
-}
-
 .sub-menu .box {
   width: 100px;
   height: 35px;
@@ -104,34 +81,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
 }
-
-.sub-menu .none {
-  width: 100px;
-  height: 20px;
-  left: 5px;
-  background-color: #666666;
-  opacity: .7; 
-  transition: all 250ms ease;
-  will-change: transition;
-  text-align: center;
-  cursor: pointer;
-  position: relative;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-}
-
-.sub-menu .head {
-  width: 110px;
-  height: 30px;
-  background-color: black;
-  opacity: .7; 
-  transition: all 250ms ease;
-  will-change: transition;
-  text-align: center;
-  cursor: pointer;
-  position: relative;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-}
-
 .sub-menu .box span {
   font-size: 1em;
   position: absolute;
@@ -148,8 +97,34 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   font-weight: normal;
   color: white;
 }
+
+
+.sub-menu input[type="radio"]:checked + .none {
+  background-color: white;
+  opacity: .0;   
+}
+.sub-menu input[type="radio"]+ .none span {
+  color: white;
+  transform: translateY(20%);
+}
+.sub-menu input[type="radio"]:checked + .none span {
+  color: black;
+  transform: translateY(23%);
+}
+.sub-menu .none {
+  width: 100px;
+  height: 20px;
+  left: 5px;
+  background-color: #666666;
+  opacity: .7; 
+  transition: all 250ms ease;
+  will-change: transition;
+  cursor: pointer;
+  position: relative;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+}
 .sub-menu .none span {
-  font-size: 0.6em;
+  font-size: 0.8em;
   position: absolute;
   left: 0;
   right: 0;
@@ -158,7 +133,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   color: #fff;
 }
 .sub-menu .none span:before {
-    font-size: 0.6em;
   font-size: 0.8em;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
   transition: all 300ms ease-in-out;
@@ -166,6 +140,30 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   color: white;
 }
 
+
+.sub-menu input[type="checkbox"]:checked + .head {
+  background-color: white;
+  opacity: .8;   
+}
+.sub-menu input[type="checkbox"]+ .head span {
+  color: white;
+  transform: translateY(28%);
+}
+.sub-menu input[type="checkbox"]:checked + .head span {
+  color: black;
+  transform: translateY(25%);
+}
+.sub-menu .head {
+  width: 110px;
+  height: 30px;
+  background-color: black;
+  opacity: .7; 
+  transition: all 250ms ease;
+  will-change: transition;
+  cursor: pointer;
+  position: relative;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+}
 .sub-menu .head span {
   font-size: 1em;
   position: absolute;
@@ -173,6 +171,8 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   right: 0;
   transition: all 300ms ease;
   user-select: none;
+  text-align: left;
+  margin-left: 5px;
   color: #fff;
 }
 

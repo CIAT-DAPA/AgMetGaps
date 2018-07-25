@@ -12,6 +12,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
   <link rel="stylesheet" href="../css/style.css">
   <script type="text/javascript" src="../js/lightStyle.js"></script>
 
@@ -27,7 +28,7 @@
       <label>
         <input type="checkbox" id="climate-checkbox" />
         <div class="climate head">
-          <span>Climate</span>
+          <span><i class="fas fa-layer-group"> </i> Climate</span>
         </div>
       </label>
       <div id="climate-opts">
@@ -74,7 +75,7 @@
       <label>
         <input type="checkbox" id="crop-checkbox" />
         <div class="crop head">
-          <span>Yield</span>
+          <span><i class="fas fa-layer-group"> </i> Yield</span>
         </div>
       </label>
       <div id="crop-opts">
@@ -120,7 +121,7 @@
       <label>
         <input type="checkbox" id="regions-checkbox" checked />
         <div class="regions head">
-          <span>Regions</span>
+          <span><i class="fas fa-globe-africa"></i> Regions</span>
         </div>
       </label>
       <div id="crop-opts">
@@ -262,7 +263,7 @@
       refreshMap($("#climate-menu input[type='radio']:checked").val(),
         $("#crop-menu input[type='radio']:checked").val(),
         $("#regions-checkbox").is(":checked"),
-        month[$("#time-slider").slider("value") - 1], );
+        month[$("#time-slider").slider("value") - 1]);
     }
 
     function refreshMap(climateVar, crop, regions, season) {

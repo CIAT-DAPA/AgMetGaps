@@ -201,10 +201,10 @@
         max: 11,
         value: 1,
         create: function () {
-          handle.text(month[$(this).slider("value") - 1]);
+          handle.text(month[$(this).slider("value")-1]);
         },
         slide: function (event, ui) {
-          handle.text(month[ui.value - 1]);
+          handle.text(month[ui.value-1]);
           updateMap();
         }
 
@@ -292,7 +292,7 @@
       refreshMap($("#climate-menu input[type='radio']:checked").val(),
         $("#crop-menu input[type='radio']:checked").val(),
         $("#regions-checkbox").is(":checked"),
-        month[$("#time-slider").slider("value") - 1]);
+        month[$("#time-slider").slider("value")]);
     }
 
     function refreshMap(climateVar, crop, regions, season) {

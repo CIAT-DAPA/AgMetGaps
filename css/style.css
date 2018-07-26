@@ -29,12 +29,6 @@ html,body {
   line-height: 1.6em;
 }
 
-p {
-  font-family: 'Open Sans', Helvetica, Arial, Lucida, sans-serif;
-  text-align: left;
-  margin: 10px 5% 10px 5%;
-}
-
 h1, h2, h3, h4, h5, h6{
 font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 }
@@ -46,6 +40,31 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   z-index: 4;
   text-align: center;
 }
+
+#about-box {
+  width: 500px;
+  height: 100px;
+  left: 0px;
+  background-color: #FFFFFF;
+  opacity: .8; 
+  transition: all 250ms ease;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  font-size: 1em;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+}
+#about-box p {
+  margin-left: 5px;
+  margin-top: 0px;
+}
+#about-box img {
+  max-height: 30px;
+  margin-left: 5px;
+  margin-top: 5px;
+}
+
+
 
 .sub-menu input[type="radio"] {
   display: none;  

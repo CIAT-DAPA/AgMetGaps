@@ -166,7 +166,7 @@
 
   <script>
 
-    var month = ["DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "SON", "OND", "NDJ"];
+    var month = ["none", "DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "ASO", "SON", "OND", "NDJ"];
 
 
 
@@ -198,13 +198,13 @@
       var handle = $("#custom-handle");
       $("#time-slider").slider({
         min: 1,
-        max: 11,
+        max: 12,
         value: 1,
         create: function () {
-          handle.text(month[$(this).slider("value")-1]);
+          handle.text(month[$(this).slider("value")]);
         },
         slide: function (event, ui) {
-          handle.text(month[ui.value-1]);
+          handle.text(month[ui.value]);
           updateMap();
         }
 
@@ -275,24 +275,26 @@
         mapTypeSelected = map.getMapTypeId();
       });
 
-      refreshMap("precipitation", "Maize_cv", true, month[0]); // initialize all
+      refreshMap("precipitation", "Maize_cv", true, month[1]); // initialize all
       climateOverlay.setMap(null);
       cropOverlay.setMap(null);
       regionsOverlay.setMap(null);
       $("#climate-layers").toggle({ direction: "top" }, 1000);
       $("#crop-layers").toggle({ direction: "top" }, 1000);
       $("#about-box").slideUp();
-      refreshMap("precipitation", "none", true, month[0]);
+      refreshMap("precipitation", "none", true, month[1]);
     }
 
     function updateMap() {
       climateOverlay.setMap(null);
-      cropOverlay.setMap(null);
-      regionsOverlay.setMap(null);
-      refreshMap($("#climate-menu input[type='radio']:checked").val(),
-        $("#crop-menu input[type='radio']:checked").val(),
-        $("#regions-checkbox").is(":checked"),
-        month[$("#time-slider").slider("value")]);
+      cropOverlay.setMap(null); 
+      regionsOverlay.setMap(null);    
+      var climateVar = $("#climate-menu input[type='radio']:checked").val();
+      var crop = $("#crop-menu input[type='radio']:checked").val();
+      var regions = $("#regions-checkbox").is(":checked");
+      var season = month[$("#time-slider").slider("value")];
+      console.log($("#time-slider").slider("value")+" "+season);
+      refreshMap(climateVar, crop, regions, season);
     }
 
     function refreshMap(climateVar, crop, regions, season) {

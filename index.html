@@ -205,7 +205,7 @@
         },
         slide: function (event, ui) {
           handle.text(month[ui.value]);
-          updateMap();
+          updateMapBySlider(month[ui.value])
         }
 
       });
@@ -293,7 +293,16 @@
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");
       var season = month[$("#time-slider").slider("value")];
-      console.log($("#time-slider").slider("value")+" "+season);
+      refreshMap(climateVar, crop, regions, season);
+    }
+
+    function updateMapBySlider(season) {
+      climateOverlay.setMap(null);
+      cropOverlay.setMap(null); 
+      regionsOverlay.setMap(null);    
+      var climateVar = $("#climate-menu input[type='radio']:checked").val();
+      var crop = $("#crop-menu input[type='radio']:checked").val();
+      var regions = $("#regions-checkbox").is(":checked");
       refreshMap(climateVar, crop, regions, season);
     }
 

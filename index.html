@@ -18,6 +18,15 @@
   <script type="text/javascript" src="js/lightStyle.js"></script>
 
 
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-122951909-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-122951909-1');
+  </script>
 
 </head>
 
@@ -189,7 +198,7 @@
     });
 
     $("#about-checkbox").click(function () {
-      $("#about-box").slideToggle( "fast", "linear" );
+      $("#about-box").slideToggle("fast", "linear");
     });
 
 
@@ -286,8 +295,8 @@
 
     function updateMap() {
       climateOverlay.setMap(null);
-      cropOverlay.setMap(null); 
-      regionsOverlay.setMap(null);    
+      cropOverlay.setMap(null);
+      regionsOverlay.setMap(null);
       var climateVar = $("#climate-menu input[type='radio']:checked").val();
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");
@@ -297,8 +306,8 @@
 
     function updateMapBySlider(season) {
       climateOverlay.setMap(null);
-      cropOverlay.setMap(null); 
-      regionsOverlay.setMap(null);    
+      cropOverlay.setMap(null);
+      regionsOverlay.setMap(null);
       var climateVar = $("#climate-menu input[type='radio']:checked").val();
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");

@@ -194,21 +194,20 @@
 
 
 
-    $(function () {
-      var handle = $("#custom-handle");
-      $("#time-slider").slider({
-        min: 1,
-        max: 12,
-        value: 1,
-        create: function () {
-          handle.text(month[$(this).slider("value")]);
-        },
-        slide: function (event, ui) {
-          handle.text(month[ui.value]);
-          updateMapBySlider(month[ui.value])
-        }
 
-      });
+    var handle = $("#custom-handle");
+    $("#time-slider").slider({
+      min: 1,
+      max: 12,
+      value: 1,
+      create: function () {
+        handle.text(month[$(this).slider("value")]);
+      },
+      slide: function (event, ui) {
+        handle.text(month[ui.value]);
+        updateMapBySlider(month[ui.value])
+      }
+
     });
 
 

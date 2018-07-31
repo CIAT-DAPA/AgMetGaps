@@ -399,8 +399,6 @@
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");
       var season = month[$("#time-slider").slider("value")];
-      console.log("p: "+precipitationVar);
-      console.log("t: "+temperatureVar);
       refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season);
     }
 
@@ -444,14 +442,15 @@
         precipitationOverlay.setMap(map);
       }
 
+      console.log(temperatureVar);
       if (temperatureVar != 'none') {
-        if (temperatureVar == 'Temp_WeightedGP_ALL') {
+        if (temperatureVar == 'Temp_WeightedGT_ALL') {
           temperatureOverlay = new google.maps.GroundOverlay(
-            "img/" + 'hotspots' + '/' + precipitationVar + '.png',
+            "img/" + 'hotspots' + '/' + temperatureVar + '.png',
             mapImageBounds);
         } else {
           temperatureOverlay = new google.maps.GroundOverlay(
-            "img/" + precipitationVar + '/' + season + '.png',
+            "img/" + temperatureVar + '/' + season + '.png',
             mapImageBounds);
           showSlider = true;
         }

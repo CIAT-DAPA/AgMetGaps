@@ -33,50 +33,123 @@
 <body>
 
   <div class="main-menu">
-    <div id="climate-menu" class="sub-menu">
+
+
+    <div id="hotspots-menu" class="sub-menu">
 
       <label>
-        <input type="checkbox" id="climate-checkbox" />
-        <div class="climate head">
+        <input type="checkbox" id="hotspots-checkbox" />
+        <div class="head">
           <span>
-            <i class="fas fa-layer-group"> </i> Climate</span>
+            <i class="fas fa-layer-group"> </i> Hotspots</span>
         </div>
       </label>
-      <div id="climate-layers">
+
+      <div id="hotspots-layers">
         <label>
-          <input type="radio" name="radio" value="precipitation" checked/>
-          <div class="climate box">
-            <span>Precipitation</span>
+          <input type="radio" name="hotspots" value="Combined_GDD" checked/>
+          <div class="box">
+            <span>Climate</span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="radio" value="temperature" />
-          <div class="climate box">
-            <span>Temperature</span>
+          <input type="radio" name="hotspots" value="mean_all_crops_filter" />
+          <div class="box">
+            <span>Crop</span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="radio" value="grocprecipitation" />
-          <div class="climate box">
-            <span>GROC Precip.</span>
-          </div>
-        </label>
-
-        <label>
-          <input type="radio" name="radio" value="groctemperature" />
-          <div class="climate box">
-            <span>GROC Temp.</span>
-          </div>
-        </label>
-
-        <label>
-          <input type="radio" name="radio" value="none" />
-          <div class="climate none">
+          <input type="radio" name="hotspots" value="none" />
+          <div class="none">
             <span>CLEAR</span>
           </div>
         </label>
+      </div>
+
+    </div>
+
+
+    <div id="precipitation-menu" class="sub-menu">
+
+      <label>
+        <input type="checkbox" id="precipitation-checkbox" />
+        <div class="head">
+          <span>
+            <i class="fas fa-layer-group"> </i> Precipitation</span>
+        </div>
+      </label>
+
+      <div id="precipitation-layers">
+        <label>
+          <input type="radio" name="precipitation" value="precipitation" />
+          <div class="box">
+            <span>C.V.</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="precipitation" value="grocprecipitation" />
+          <div class="box">
+            <span>GROC </span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="precipitation" value="Precip_WeightedGP_ALL" />
+          <div class="box">
+            <span>Hotspots</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="precipitation" value="none" checked/>
+          <div class="none">
+            <span>CLEAR</span>
+          </div>
+        </label>
+
+
+      </div>
+      <div id="temperature-menu" class="sub-menu">
+
+        <label>
+          <input type="checkbox" id="temperature-checkbox" />
+          <div class="head">
+            <span>
+              <i class="fas fa-layer-group"> </i> Temperature</span>
+          </div>
+        </label>
+        <div id="temperature-layers">
+          <label>
+            <input type="radio" name="temperature" value="temperature" />
+            <div class="box">
+              <span>S.D.</span>
+            </div>
+          </label>
+
+          <label>
+            <input type="radio" name="temperature" value="groctemperature" />
+            <div class="box">
+              <span>GROC </span>
+            </div>
+          </label>
+
+          <label>
+            <input type="radio" name="temperature" value="Temp_WeightedGT_ALL" />
+            <div class="box">
+              <span>Hotspots</span>
+            </div>
+          </label>
+
+          <label>
+            <input type="radio" name="temperature" value="none" checked/>
+            <div class="none">
+              <span>CLEAR</span>
+            </div>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -87,35 +160,35 @@
         <input type="checkbox" id="crop-checkbox" />
         <div class="crop head">
           <span>
-            <i class="fas fa-layer-group"> </i> Yield</span>
+            <i class="fas fa-layer-group"> </i> Crop</span>
         </div>
       </label>
       <div id="crop-layers">
         <label>
           <input type="radio" name="crop" value="Maize_cv" />
-          <div class="crop box">
-            <span>Maize</span>
+          <div class="box">
+            <span>Maize yield</span>
           </div>
         </label>
 
         <label>
           <input type="radio" name="crop" value="Rice_cv" />
-          <div class="crop box">
-            <span>Rice</span>
+          <div class="box">
+            <span>Rice yield</span>
           </div>
         </label>
 
         <label>
           <input type="radio" name="crop" value="Wheat_spring_cv" />
-          <div class="precipitation box">
-            <span>Spring wheat</span>
+          <div class="box">
+            <span>S. Wheat yield</span>
           </div>
         </label>
 
         <label>
           <input type="radio" name="crop" value="Wheat_winter_cv" />
-          <div class="crop box">
-            <span>Winter wheat</span>
+          <div class="box">
+            <span>W. Wheat yield</span>
           </div>
         </label>
 
@@ -151,7 +224,7 @@
 
       <div id="about-box">
         <p>
-          The AgMetGaps Project aims to scale-up climate services for improved agricultural outcomes.
+          The AgMetGaps Project aims to scale-up precipitation services for improved agricultural outcomes.
         </p>
         <img src="img/logo/usaid.png">
         <img src="img/logo/ciat.png">
@@ -178,11 +251,24 @@
     var month = ["none", "DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "ASO", "SON", "OND", "NDJ"];
 
 
-
-    $("#climate-checkbox").click(function () {
-      $("#climate-layers").toggle({ direction: "top" }, 1000);
+    $("#hotspots-checkbox").click(function () {
+      $("#hotspots-layers").toggle({ direction: "top" }, 1000);
     });
-    $("#climate-menu input[type='radio']").click(function () {
+    $("#hotspots-menu input[type='radio']").click(function () {
+      updateMap();
+    });
+
+    $("#precipitation-checkbox").click(function () {
+      $("#precipitation-layers").toggle({ direction: "top" }, 1000);
+    });
+    $("#precipitation-menu input[type='radio']").click(function () {
+      updateMap();
+    });
+
+    $("#temperature-checkbox").click(function () {
+      $("#temperature-layers").toggle({ direction: "top" }, 1000);
+    });
+    $("#temperature-menu input[type='radio']").click(function () {
       updateMap();
     });
 
@@ -219,10 +305,11 @@
 
     });
 
-
-    var climateOverlay;
+    var hotspotsOverlay;
+    var precipitationOverlay;
+    var temperatureOverlay;
     var cropOverlay;
-    var regionsOverlay
+    var regionsOverlay;
     var mapZoom = 3;
     var mapCenter = { lat: 0, lng: 0 };
     var mapTypeSelected = 'lightStyledMapType';
@@ -256,7 +343,7 @@
         }
       });
 
-      var lightStyledMapType = new google.maps.StyledMapType(lightStyle, { name: 'White' });
+      var lightStyledMapType = new google.maps.StyledMapType(lightStyle, { name: 'Light' });
 
       //Associate the styled map with the MapTypeId and set it to display.
       map.mapTypes.set('lightStyledMapType', lightStyledMapType);
@@ -283,48 +370,93 @@
         mapTypeSelected = map.getMapTypeId();
       });
 
-      refreshMap("precipitation", "Maize_cv", true, month[1]); // initialize all
-      climateOverlay.setMap(null);
+      refreshMap("Temp_WeightedGT_ALL", "precipitation", "temperature", "Maize_cv", true, month[1]); // initialize all
+      hotspotsOverlay.setMap(null);
+      precipitationOverlay.setMap(null);
+      temperatureOverlay.setMap(null);
       cropOverlay.setMap(null);
       regionsOverlay.setMap(null);
-      $("#climate-layers").toggle({ direction: "top" }, 1000);
+      $("#hotspots-layers").toggle({ direction: "top" }, 1000);
+      $("#precipitation-layers").toggle({ direction: "top" }, 1000);
+      $("#temperature-layers").toggle({ direction: "top" }, 1000);
       $("#crop-layers").toggle({ direction: "top" }, 1000);
       $("#about-box").slideUp();
-      refreshMap("precipitation", "none", true, month[1]);
+      $("#time-slider").toggle();
+
+      refreshMap("Combined_GDD", "none", "none", "none", true, month[1]);
     }
 
     function updateMap() {
-      climateOverlay.setMap(null);
+
+      hotspotsOverlay.setMap(null);
+      precipitationOverlay.setMap(null);
+      temperatureOverlay.setMap(null);
       cropOverlay.setMap(null);
       regionsOverlay.setMap(null);
-      var climateVar = $("#climate-menu input[type='radio']:checked").val();
+      var hotspot = $("#hotspots-menu input[type='radio']:checked").val();
+      var precipitationVar = $("#precipitation-menu input[type='radio']:checked").val();
+      var temperatureVar = $("#temperature-menu input[type='radio']:checked").val();
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");
       var season = month[$("#time-slider").slider("value")];
-      refreshMap(climateVar, crop, regions, season);
+      console.log("p: "+precipitationVar);
+      console.log("t: "+temperatureVar);
+      refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season);
     }
 
     function updateMapBySlider(season) {
-      climateOverlay.setMap(null);
+      hotspotsOverlay.setMap(null);
+      precipitationOverlay.setMap(null);
+      temperatureOverlay.setMap(null);
       cropOverlay.setMap(null);
       regionsOverlay.setMap(null);
-      var climateVar = $("#climate-menu input[type='radio']:checked").val();
+      var hotspot = $("#hotspots-menu input[type='radio']:checked").val();
+      var precipitationVar = $("#precipitation-menu input[type='radio']:checked").val();
+      var temperatureVar = $("#temperature-menu input[type='radio']:checked").val();
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");
-      refreshMap(climateVar, crop, regions, season);
+      refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season);
     }
 
-    function refreshMap(climateVar, crop, regions, season) {
+    function refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season) {
+      var showSlider = false;
 
-      if (climateVar != 'none') {
-        climateOverlay = new google.maps.GroundOverlay(
-          "img/" + climateVar + '/' + season + '.png',
+      if (hotspot != 'none') {
+        hotspotsOverlay = new google.maps.GroundOverlay(
+          "img/" + 'hotspots' + '/' + hotspot + '.png',
           mapImageBounds);
-        climateOverlay.setOpacity(0.7);
-        climateOverlay.setMap(map);
-        $("#time-slider").fadeIn();
-      } else {
-        $("#time-slider").fadeOut();
+        hotspotsOverlay.setOpacity(0.7);
+        hotspotsOverlay.setMap(map);  
+      }
+
+      if (precipitationVar != 'none') {
+        if (precipitationVar == 'Precip_WeightedGP_ALL') {
+          precipitationOverlay = new google.maps.GroundOverlay(
+            "img/" + 'hotspots' + '/' + precipitationVar + '.png',
+            mapImageBounds);
+        } else {
+          precipitationOverlay = new google.maps.GroundOverlay(
+            "img/" + precipitationVar + '/' + season + '.png',
+            mapImageBounds)
+          showSlider = true;
+        }
+        precipitationOverlay.setOpacity(0.7);
+        precipitationOverlay.setMap(map);
+      }
+
+      if (temperatureVar != 'none') {
+        if (temperatureVar == 'Temp_WeightedGP_ALL') {
+          temperatureOverlay = new google.maps.GroundOverlay(
+            "img/" + 'hotspots' + '/' + precipitationVar + '.png',
+            mapImageBounds);
+        } else {
+          temperatureOverlay = new google.maps.GroundOverlay(
+            "img/" + precipitationVar + '/' + season + '.png',
+            mapImageBounds);
+          showSlider = true;
+        }
+        temperatureOverlay.setOpacity(0.7);
+        temperatureOverlay.setMap(map);
       }
 
       if (crop != 'none') {
@@ -350,44 +482,44 @@
 
       //assemble html and place in var
       var content = [];
-      switch (climateVar) {
+      switch (precipitationVar) {
         case 'precipitation':
-          content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation CV (%)</h3>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + '&lt; 0.33' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + '0.33, 0.66' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + '&gt; 0.66' + '</p>');
+          content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V. (%)</h3>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + ' &lt; 33' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + ' 33, 66' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + ' &gt; 0.66' + '</p>');
           break;
         case 'temperature':
-          content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature SD (&#8451)</h3>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-1"></div>' + '&lt; 0.5' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-2"></div>' + '0.5, 1.0' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-3"></div>' + '1.0, 1.5' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-4"></div>' + '&gt; 1.5 ' + '</p>');
+          content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature S.D. (&#8451)</h3>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-1"></div>' + ' &lt; 0.5' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-2"></div>' + ' 0.5, 1.0' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-3"></div>' + ' 1.0, 1.5' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-4"></div>' + ' &gt; 1.5 ' + '</p>');
           break;
         case 'grocprecipitation':
-          content.push('<h3 class="ts-map-legend-headline">' + season + ' GROC Precipitation</h3>');
+          content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation GROC</h3>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
           break;
         case 'groctemperature':
-          content.push('<h3 class="ts-map-legend-headline">' + season + ' GROC temperature</h3>'); // uses same color as precipitation
+          content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>'); // uses same color as precipitation
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
           break;
       }
       if (crop != 'none') {
-        if (climateVar != 'none') {
+        if (precipitationVar != 'none') {
           content.push('<h3></h3>');
         }
-        content.push('<h3 class="ts-map-legend-headline">Yield CV (%)</h3>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.33' + '</p>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');
+        content.push('<h3 class="ts-map-legend-headline">Yield C.V. (%)</h3>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 33' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '33, 66' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 66' + '</p>');
       }
       if (regions) {
-        if (climateVar != 'none' || crop != 'none') {
+        if (precipitationVar != 'none' || crop != 'none') {
           content.push('<h3></h3>');
         }
         content.push('<h3 class="ts-map-legend-headline">Regions</h3>');
@@ -402,8 +534,11 @@
       map.controls[google.maps.ControlPosition.TOP_RIGHT].clear();
       map.controls[google.maps.ControlPosition.TOP_RIGHT].push(legend);
 
-
-
+      if (showSlider) {
+        $("#time-slider").show();
+      } else {
+        $("#time-slider").hide();
+      }
 
 
     }

@@ -279,20 +279,11 @@
       ga('send', 'event', this.name, "check", $(this).val());
     });
 
-    $("#hotspots-checkbox").click(function () {
-        $("#hotspots-layers").toggle({ direction: "top" }, 1000);
-      });
-
-    $("#precipitation-checkbox").click(function () {
-      $("#precipitation-layers").toggle({ direction: "top" }, 1000);
-    });
-
-    $("#temperature-checkbox").click(function () {
-      $("#temperature-layers").toggle({ direction: "top" }, 1000);
-    });
-
-    $("#crop-checkbox").click(function () {
-      $("#crop-layers").toggle({ direction: "top" }, 1000);
+    $("input[type='checkbox']").click(function () {
+      var id = this.id;
+      var name = id.split("-")[0];
+      $("#"+ name + "-layers").toggle({ direction: "top" }, 1000);
+      ga('send', 'event', name, "deploy", id);
     });
 
     $("#regions-checkbox").click(function () {

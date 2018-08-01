@@ -274,37 +274,25 @@
 
     var month = ["none", "DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "ASO", "SON", "OND", "NDJ"];
 
+    $("input[type='radio']").click(function () {
+      updateMap();
+      ga('send', 'event', this.name, "check", $(this).val());
+    });
 
     $("#hotspots-checkbox").click(function () {
-      $("#hotspots-layers").toggle({ direction: "top" }, 1000);
-    });
-    $("#hotspots-menu input[type='radio']").click(function () {
-      console.log(this.checked);
-      if (this.checked == false) {
-        console.log("here");
-      }
-      updateMap();
-    });
+        $("#hotspots-layers").toggle({ direction: "top" }, 1000);
+      });
 
     $("#precipitation-checkbox").click(function () {
       $("#precipitation-layers").toggle({ direction: "top" }, 1000);
-    });
-    $("#precipitation-menu input[type='radio']").click(function () {
-      updateMap();
     });
 
     $("#temperature-checkbox").click(function () {
       $("#temperature-layers").toggle({ direction: "top" }, 1000);
     });
-    $("#temperature-menu input[type='radio']").click(function () {
-      updateMap();
-    });
 
     $("#crop-checkbox").click(function () {
       $("#crop-layers").toggle({ direction: "top" }, 1000);
-    });
-    $("#crop-menu input[type='radio']").click(function () {
-      updateMap();
     });
 
     $("#regions-checkbox").click(function () {

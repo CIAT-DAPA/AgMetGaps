@@ -471,7 +471,7 @@
             content.push('<h3 class="ts-map-legend-headline">' + ' Crop Hotspots</h3>');
             break;
         }
-        content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' + '</p>');
+        content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' + '</p></br>');
         content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
 
@@ -506,6 +506,11 @@
             content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
             content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
             content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
+            break;
+          case 'Precip_WeightedGP_ALL':
+            content.push('<h3 class="ts-map-legend-headline">' + ' Precipitation hotspots</h3>');
+            content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' + '</p></br>');
+            content.push('<p>' + ' min. 0, max. 1' + '</p>');
             break;
         }
       }
@@ -544,6 +549,11 @@
             content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
             content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
             break;
+          case 'Temp_WeightedGT_ALL':
+            content.push('<h3 class="ts-map-legend-headline">' + ' Temperature hotspots</h3>');
+            content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' + '</p></br>');
+            content.push('<p>' + ' min. 0, max. 1' + '</p>');
+            break;
         }
       }
 
@@ -558,10 +568,17 @@
         if (content.length != 0) {
           content.push('<h3></h3>');
         }
-        content.push('<h3 class="ts-map-legend-headline">Yield C.V.</h3>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.33' + '</p>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');
+        if (crop.endsWith("filter")) {
+          content.push('<h3 class="ts-map-legend-headline">Hotspots</h3>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.23' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.23, 0.46' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.46' + '</p>');
+        } else {
+          content.push('<h3 class="ts-map-legend-headline">Yield C.V.</h3>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.33' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
+          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');
+        }
       }
 
       if (regions) {

@@ -418,17 +418,38 @@
 
     function refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season) {
       var showSlider = false;
-      console.log(hotspot+", "+ precipitationVar+", "+ temperatureVar+", "+ crop+", "+ regions+", "+ season);
+
+      // Create the legend and display on the map
+      var legend = document.createElement('div');
+      legend.id = 'ts-map-legend';
+
+
+      //assemble html and place in var
+      var content = [];
 
       if (hotspot != 'none') {
+
         hotspotsOverlay = new google.maps.GroundOverlay(
           "img/" + 'hotspots' + '/' + hotspot + '.png',
           mapImageBounds);
         hotspotsOverlay.setOpacity(0.7);
         hotspotsOverlay.setMap(map);
+
+        switch (hotspot) {
+          case 'Combined_GDD':
+            content.push('<h3 class="ts-map-legend-headline">' + ' Climate Hotspots</h3>');
+            break;
+          case 'mean_all_crops_filter':
+            content.push('<h3 class="ts-map-legend-headline">' + ' Crop Hotspots</h3>');
+            break;
+        }
+        content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' + '</p>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
 
       if (precipitationVar != 'none') {
+
+
         if (precipitationVar == 'Precip_WeightedGP_ALL') {
           precipitationOverlay = new google.maps.GroundOverlay(
             "img/" + 'hotspots' + '/' + precipitationVar + '.png',
@@ -441,69 +462,15 @@
         }
         precipitationOverlay.setOpacity(0.7);
         precipitationOverlay.setMap(map);
-      }
 
-      if (temperatureVar != 'none') {
-        if (temperatureVar == 'Temp_WeightedGT_ALL') {
-          temperatureOverlay = new google.maps.GroundOverlay(
-            "img/" + 'hotspots' + '/' + temperatureVar + '.png',
-            mapImageBounds);
-        } else {
-          temperatureOverlay = new google.maps.GroundOverlay(
-            "img/" + temperatureVar + '/' + season + '.png',
-            mapImageBounds);
-          showSlider = true;
-        }
-        temperatureOverlay.setOpacity(0.7);
-        temperatureOverlay.setMap(map);
-      }
-
-      if (crop != 'none') {
-        cropOverlay = new google.maps.GroundOverlay(
-          "img/" + 'yield' + '/' + crop + '.png',
-          mapImageBounds);
-        cropOverlay.setOpacity(0.7);
-        cropOverlay.setMap(map);
-      }
-
-      if (regions) {
-        regionsOverlay = new google.maps.GroundOverlay(
-          "img/" + 'LobelRegions' + '.png',
-          mapImageBounds);
-        regionsOverlay.setOpacity(0.95);
-        regionsOverlay.setMap(map);
-      }
-
-      // Create the legend and display on the map
-      var legend = document.createElement('div');
-      legend.id = 'ts-map-legend';
-
-
-      //assemble html and place in var
-      var content = [];
-
-      if (hotspot != 'none') {
-        switch (hotspot) {
-          case 'Combined_GDD':
-            content.push('<h3 class="ts-map-legend-headline">' + ' Climate Hotspots</h3>');
-            break;
-          case 'mean_all_crops_filter':
-            content.push('<h3 class="ts-map-legend-headline">' + ' Crop Hotspots</h3>');
-            break;
-        }
-        content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' +  '</p>');
-        content.push('<p>' + ' min. 0, max. 1' + '</p>');
-      }
-
-      if (precipitationVar != 'none') {
         if (content.length != 0) {
           content.push('<h3></h3>');
         }
         switch (precipitationVar) {
           case 'precipitation':
-            content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V. (%)</h3>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + ' &lt; 33' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + ' 33, 66' + '</p>');
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V.</h3>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + ' &lt; 0.33' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + ' 0.33, 0.66' + '</p>');
             content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + ' &gt; 0.66' + '</p>');
             break;
           case 'grocprecipitation':
@@ -517,6 +484,21 @@
 
 
       if (temperatureVar != 'none') {
+
+        if (temperatureVar == 'Temp_WeightedGT_ALL') {
+          temperatureOverlay = new google.maps.GroundOverlay(
+            "img/" + 'hotspots' + '/' + temperatureVar + '.png',
+            mapImageBounds);
+        } else {
+          temperatureOverlay = new google.maps.GroundOverlay(
+            "img/" + temperatureVar + '/' + season + '.png',
+            mapImageBounds);
+          showSlider = true;
+        }
+        temperatureOverlay.setOpacity(0.7);
+        temperatureOverlay.setMap(map);
+
+
         if (content.length != 0) {
           content.push('<h3></h3>');
         }
@@ -538,6 +520,13 @@
       }
 
       if (crop != 'none') {
+
+        cropOverlay = new google.maps.GroundOverlay(
+          "img/" + 'yield' + '/' + crop + '.png',
+          mapImageBounds);
+        cropOverlay.setOpacity(0.7);
+        cropOverlay.setMap(map);
+
         if (content.length != 0) {
           content.push('<h3></h3>');
         }
@@ -548,6 +537,13 @@
       }
 
       if (regions) {
+
+        regionsOverlay = new google.maps.GroundOverlay(
+          "img/" + 'LobelRegions' + '.png',
+          mapImageBounds);
+        regionsOverlay.setOpacity(0.95);
+        regionsOverlay.setMap(map);
+
         if (content.length != 0) {
           content.push('<h3></h3>');
         }

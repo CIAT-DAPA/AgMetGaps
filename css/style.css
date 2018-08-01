@@ -87,7 +87,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   transform: translateY(25%);
 }
 .sub-menu .box {
-  width: 100px;
+  width: 130px;
   height: 35px;
   left: 5px;
   background-color: #999999;
@@ -175,7 +175,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   transform: translateY(25%);
 }
 .sub-menu .head {
-  width: 110px;
+  width: 140px;
   height: 30px;
   background-color: black;
   opacity: .7; 

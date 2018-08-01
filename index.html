@@ -41,7 +41,7 @@
         <input type="checkbox" id="hotspots-checkbox" />
         <div class="head">
           <span>
-            <i class="fas fa-layer-group"> </i> Hotspots</span>
+            <i class="fas fa-layer-group"> </i> Global hotspots</span>
         </div>
       </label>
 
@@ -170,11 +170,23 @@
             <span>Maize yield</span>
           </div>
         </label>
+        <label>
+          <input type="radio" name="crop" value="Maize_filter" />
+          <div class="box">
+            <span>Maize hotspots</span>
+          </div>
+        </label>
 
         <label>
           <input type="radio" name="crop" value="Rice_cv" />
           <div class="box">
             <span>Rice yield</span>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="crop" value="Rice_filter" />
+          <div class="box">
+            <span>Rice hotspots</span>
           </div>
         </label>
 
@@ -184,11 +196,23 @@
             <span>S. Wheat yield</span>
           </div>
         </label>
+        <label>
+          <input type="radio" name="crop" value="SpringWheat_filter" />
+          <div class="box">
+            <span>S. Wheat hotspots</span>
+          </div>
+        </label>
 
         <label>
           <input type="radio" name="crop" value="Wheat_winter_cv" />
           <div class="box">
             <span>W. Wheat yield</span>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="crop" value="WinterWheat_filter" />
+          <div class="box">
+            <span>W. Wheat hotspots</span>
           </div>
         </label>
 
@@ -255,6 +279,10 @@
       $("#hotspots-layers").toggle({ direction: "top" }, 1000);
     });
     $("#hotspots-menu input[type='radio']").click(function () {
+      console.log(this.checked);
+      if (this.checked == false) {
+        console.log("here");
+      }
       updateMap();
     });
 
@@ -522,7 +550,7 @@
       if (crop != 'none') {
 
         cropOverlay = new google.maps.GroundOverlay(
-          "img/" + 'yield' + '/' + crop + '.png',
+          "img/" + 'crops' + '/' + crop + '.png',
           mapImageBounds);
         cropOverlay.setOpacity(0.7);
         cropOverlay.setMap(map);
@@ -530,10 +558,10 @@
         if (content.length != 0) {
           content.push('<h3></h3>');
         }
-        content.push('<h3 class="ts-map-legend-headline">Yield C.V. (%)</h3>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 33' + '</p>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '33, 66' + '</p>');
-        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 66' + '</p>');
+        content.push('<h3 class="ts-map-legend-headline">Yield C.V.</h3>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.33' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
+        content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');
       }
 
       if (regions) {

@@ -250,6 +250,19 @@ h3.ts-map-legend-headline{
   border-width: 1px;
 }
 
+.ts-map-legend-gradient {
+  height: 12px;
+  width: 70px;
+  margin-right: 3px;
+  float: left;
+  border-style: solid;
+  border-width: 1px;
+}
+
+.ts-map-legend-gradient-hotspots {
+  background: linear-gradient(to right, white, #008000);
+}
+
 .ts-map-legend-color-yield-1 {
   background: #FFFF00;
 }

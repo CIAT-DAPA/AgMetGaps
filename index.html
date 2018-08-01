@@ -370,7 +370,7 @@
         mapTypeSelected = map.getMapTypeId();
       });
 
-      refreshMap("Temp_WeightedGT_ALL", "precipitation", "temperature", "Maize_cv", true, month[1]); // initialize all
+      refreshMap("Combined_GDD", "precipitation", "temperature", "Maize_cv", true, month[1]); // initialize all
       hotspotsOverlay.setMap(null);
       precipitationOverlay.setMap(null);
       temperatureOverlay.setMap(null);
@@ -418,13 +418,14 @@
 
     function refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season) {
       var showSlider = false;
+      console.log(hotspot+", "+ precipitationVar+", "+ temperatureVar+", "+ crop+", "+ regions+", "+ season);
 
       if (hotspot != 'none') {
         hotspotsOverlay = new google.maps.GroundOverlay(
           "img/" + 'hotspots' + '/' + hotspot + '.png',
           mapImageBounds);
         hotspotsOverlay.setOpacity(0.7);
-        hotspotsOverlay.setMap(map);  
+        hotspotsOverlay.setMap(map);
       }
 
       if (precipitationVar != 'none') {
@@ -442,7 +443,6 @@
         precipitationOverlay.setMap(map);
       }
 
-      console.log(temperatureVar);
       if (temperatureVar != 'none') {
         if (temperatureVar == 'Temp_WeightedGT_ALL') {
           temperatureOverlay = new google.maps.GroundOverlay(
@@ -481,35 +481,64 @@
 
       //assemble html and place in var
       var content = [];
-      switch (precipitationVar) {
-        case 'precipitation':
-          content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V. (%)</h3>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + ' &lt; 33' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + ' 33, 66' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + ' &gt; 0.66' + '</p>');
-          break;
-        case 'temperature':
-          content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature S.D. (&#8451)</h3>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-1"></div>' + ' &lt; 0.5' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-2"></div>' + ' 0.5, 1.0' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-3"></div>' + ' 1.0, 1.5' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-4"></div>' + ' &gt; 1.5 ' + '</p>');
-          break;
-        case 'grocprecipitation':
-          content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation GROC</h3>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
-          break;
-        case 'groctemperature':
-          content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>'); // uses same color as precipitation
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
-          break;
+
+      if (hotspot != 'none') {
+        switch (hotspot) {
+          case 'Combined_GDD':
+            content.push('<h3 class="ts-map-legend-headline">' + ' Climate Hotspots</h3>');
+            break;
+          case 'mean_all_crops_filter':
+            content.push('<h3 class="ts-map-legend-headline">' + ' Crop Hotspots</h3>');
+            break;
+        }
+        content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' +  '</p>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
+
+      if (precipitationVar != 'none') {
+        if (content.length != 0) {
+          content.push('<h3></h3>');
+        }
+        switch (precipitationVar) {
+          case 'precipitation':
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V. (%)</h3>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + ' &lt; 33' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + ' 33, 66' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + ' &gt; 0.66' + '</p>');
+            break;
+          case 'grocprecipitation':
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation GROC</h3>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
+            break;
+        }
+      }
+
+
+      if (temperatureVar != 'none') {
+        if (content.length != 0) {
+          content.push('<h3></h3>');
+        }
+        switch (temperatureVar) {
+          case 'temperature':
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature S.D. (&#8451)</h3>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-1"></div>' + ' &lt; 0.5' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-2"></div>' + ' 0.5, 1.0' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-3"></div>' + ' 1.0, 1.5' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-4"></div>' + ' &gt; 1.5 ' + '</p>');
+            break;
+          case 'groctemperature':
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>'); // uses same color as precipitation
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
+            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
+            break;
+        }
+      }
+
       if (crop != 'none') {
-        if (precipitationVar != 'none') {
+        if (content.length != 0) {
           content.push('<h3></h3>');
         }
         content.push('<h3 class="ts-map-legend-headline">Yield C.V. (%)</h3>');
@@ -517,8 +546,9 @@
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '33, 66' + '</p>');
         content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 66' + '</p>');
       }
+
       if (regions) {
-        if (precipitationVar != 'none' || crop != 'none') {
+        if (content.length != 0) {
           content.push('<h3></h3>');
         }
         content.push('<h3 class="ts-map-legend-headline">Regions</h3>');

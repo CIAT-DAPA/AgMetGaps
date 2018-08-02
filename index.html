@@ -5,6 +5,7 @@
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
   <meta charset="utf-8">
   <title>AgMetGaps</title>
+  <link rel="icon" type="image/png" href="https://ciat.cgiar.org/wp-content/uploads/ciat-icon-48.png" />
   <link rel='stylesheet' id='divi-fonts-css' href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800&#038;subset=latin,latin-ext'
     type='text/css' media='all' />
   <link rel='stylesheet' id='et-gf-abel-css' href='https://fonts.googleapis.com/css?family=Abel:400&#038;subset=latin' type='text/css'
@@ -248,9 +249,10 @@
 
       <div id="about-box">
         <p>
-          The AgMetGaps Project aims to scale-up precipitation services for improved agricultural outcomes. 
-          Climatically, we define a "hotspot" as an area of high climate variability and moderate or high seasonal forecast skill.
-          Agriculturally, we define a “hotspot” as an area where; (i) crop yield is highly associated with climate variability; and (ii) seasonal forecast skill is moderate or high.
+          The AgMetGaps Project aims to scale-up precipitation services for improved agricultural outcomes. Climatically, we define
+          a "hotspot" as an area of high climate variability and moderate or high seasonal forecast skill. Agriculturally,
+          we define a “hotspot” as an area where; (i) crop yield is highly associated with climate variability; and (ii)
+          seasonal forecast skill is moderate or high.
         </p>
         <img src="img/logo/usaid.png">
         <img src="img/logo/ciat.png">
@@ -284,7 +286,7 @@
     $("input[type='checkbox']").click(function () {
       var id = this.id;
       var name = id.split("-")[0];
-      $("#"+ name + "-layers").toggle({ direction: "top" }, 1000);
+      $("#" + name + "-layers").toggle({ direction: "top" }, 1000);
       ga('send', 'event', name, "deploy", id);
     });
 

@@ -13,10 +13,10 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ"
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/../css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ"
     crossorigin="anonymous">
-  <link rel="stylesheet" href="css/style.css">
-  <script type="text/javascript" src="js/lightStyle.js"></script>
+  <link rel="stylesheet" href="../css/style.css">
+  <script type="text/javascript" src="../js/lightStyle.js"></script>
 
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -230,10 +230,10 @@
           we define a “hotspot” as an area where; (i) crop yield is highly associated with climate variability; and (ii)
           seasonal forecast skill is moderate or high.
         </p>
-        <img src="img/logo/usaid.png">
-        <img src="img/logo/ciat.png">
-        <img src="img/logo/ccafs.png">
-        <img src="img/logo/iri.png">
+        <img src="../img/logo/usaid.png">
+        <img src="../img/logo/ciat.png">
+        <img src="../img/logo/ccafs.png">
+        <img src="../img/logo/iri.png">
       </div>
     </div>
   </div>
@@ -437,7 +437,7 @@
       if (hotspot != undefined) {
 
         hotspotsOverlay = new google.maps.GroundOverlay(
-          "img/" + 'hotspots' + '/' + hotspot + '.png',
+          "../img/" + 'hotspots' + '/' + hotspot + '.png',
           mapImageBounds);
         hotspotsOverlay.setOpacity(0.7);
         hotspotsOverlay.setMap(map);
@@ -459,11 +459,11 @@
 
         if (precipitationVar == 'Precip_WeightedGP_ALL') {
           precipitationOverlay = new google.maps.GroundOverlay(
-            "img/" + 'hotspots' + '/' + precipitationVar + '.png',
+            "../img/" + 'hotspots' + '/' + precipitationVar + '.png',
             mapImageBounds);
         } else {
           precipitationOverlay = new google.maps.GroundOverlay(
-            "img/" + precipitationVar + '/' + season + '.png',
+            "../img/" + precipitationVar + '/' + season + '.png',
             mapImageBounds)
           showSlider = true;
         }
@@ -499,11 +499,11 @@
 
         if (temperatureVar == 'Temp_WeightedGT_ALL') {
           temperatureOverlay = new google.maps.GroundOverlay(
-            "img/" + 'hotspots' + '/' + temperatureVar + '.png',
+            "../img/" + 'hotspots' + '/' + temperatureVar + '.png',
             mapImageBounds);
         } else {
           temperatureOverlay = new google.maps.GroundOverlay(
-            "img/" + temperatureVar + '/' + season + '.png',
+            "../img/" + temperatureVar + '/' + season + '.png',
             mapImageBounds);
           showSlider = true;
         }
@@ -539,7 +539,7 @@
       if (crop != undefined) {
 
         cropOverlay = new google.maps.GroundOverlay(
-          "img/" + 'crops' + '/' + crop + '.png',
+          "../img/" + 'crops' + '/' + crop + '.png',
           mapImageBounds);
         cropOverlay.setOpacity(0.7);
         cropOverlay.setMap(map);
@@ -563,7 +563,7 @@
       if (regions) {
 
         regionsOverlay = new google.maps.GroundOverlay(
-          "img/" + 'LobelRegions' + '.png',
+          "../img/" + 'LobelRegions' + '.png',
           mapImageBounds);
         regionsOverlay.setOpacity(0.95);
         regionsOverlay.setMap(map);

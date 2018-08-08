@@ -268,12 +268,12 @@
         $(this).prop("checked", true);
         $(this).data("status", "checked");
       } else {
-        $(this).prop("checked", false);
+        $(this).prop("checked", false); 
         $(this).data("status", "unchecked");
       }
 
       updateMap();
-      ga('send', {
+      gtag('send', {
         'hitType': 'event',
         'eventCategory': name + "",
         'eventAction': $(this).data("status") + "",
@@ -286,7 +286,7 @@
       var id = this.id;
       var name = id.split("-")[0];
       $("#" + name + "-layers").toggle({ direction: "top" }, 1000);
-      ga('send', {
+      gtag('send', {
         'hitType': 'event',
         'eventCategory': name + "",
         'eventAction': "toggle" + "",

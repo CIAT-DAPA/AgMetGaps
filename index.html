@@ -267,21 +267,32 @@
       if (status == undefined || status == "unchecked") {
         $(this).prop("checked", true);
         $(this).data("status", "checked");
-        ga('send', 'event', this.name, "check", $(this).val());
       } else {
         $(this).prop("checked", false);
         $(this).data("status", "unchecked");
-        ga('send', 'event', this.name, "uncheck", $(this).val());
       }
 
       updateMap();
+      ga('send', {
+        'hitType': 'event',
+        'eventCategory': name + "",
+        'eventAction': $(this).data("status") + "",
+        'eventLabel': $(this).val() + ""
+      }
+      );
     });
 
     $("input[type='checkbox']").click(function () {
       var id = this.id;
       var name = id.split("-")[0];
       $("#" + name + "-layers").toggle({ direction: "top" }, 1000);
-      ga('send', 'event', name, "deploy", id);
+      ga('send', {
+        'hitType': 'event',
+        'eventCategory': name + "",
+        'eventAction': "toggle" + "",
+        'eventLabel': id + ""
+      }
+      );
     });
 
     $("#regions-checkbox").click(function () {
@@ -291,7 +302,6 @@
     $("#about-checkbox").click(function () {
       $("#about-box").slideToggle("fast", "linear");
     });
-
 
 
 

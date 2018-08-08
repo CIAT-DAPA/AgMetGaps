@@ -118,49 +118,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 }
 
 
-.sub-menu input[type="radio"]:checked + .none {
-  background-color: white;
-  opacity: .0;   
-}
-.sub-menu input[type="radio"]+ .none span {
-  color: white;
-  transform: translateY(20%);
-}
-.sub-menu input[type="radio"]:checked + .none span {
-  color: black;
-  transform: translateY(23%);
-}
-.sub-menu .none {
-  width: 100px;
-  height: 20px;
-  left: 5px;
-  background-color: #666666;
-  opacity: .7; 
-  transition: all 250ms ease;
-  will-change: transition;
-  cursor: pointer;
-  position: relative;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-}
-.sub-menu .none span {
-  font-size: 0.8em;
-  position: absolute;
-  left: 0;
-  right: 0;
-  transition: all 300ms ease;
-  user-select: none;
-  text-align: center;
-  color: #fff;
-}
-.sub-menu .none span:before {
-  font-size: 0.8em;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-  transition: all 300ms ease-in-out;
-  font-weight: normal;
-  color: white;
-}
-
-
 .sub-menu input[type="checkbox"]:checked + .head {
   background-color: white;
   opacity: .8;   

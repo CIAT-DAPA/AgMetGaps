@@ -15,8 +15,8 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ"
     crossorigin="anonymous">
-  <link rel="stylesheet" href="../css/style.css">
-  <script type="text/javascript" src="../js/lightStyle.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="text/javascript" src="js/lightStyle.js"></script>
 
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -48,7 +48,7 @@
 
       <div id="hotspots-layers">
         <label>
-          <input type="radio" name="hotspots" value="Combined_GDD" checked/>
+          <input type="radio" name="hotspots" value="Combined_GDD" checked />
           <div class="box">
             <span>Climate</span>
           </div>
@@ -61,14 +61,7 @@
           </div>
         </label>
 
-        <label>
-          <input type="radio" name="hotspots" value="none" />
-          <div class="none">
-            <span>CLEAR</span>
-          </div>
-        </label>
       </div>
-
     </div>
 
 
@@ -104,55 +97,44 @@
           </div>
         </label>
 
-        <label>
-          <input type="radio" name="precipitation" value="none" checked/>
-          <div class="none">
-            <span>CLEAR</span>
-          </div>
-        </label>
-
-
-      </div>
-      <div id="temperature-menu" class="sub-menu">
-
-        <label>
-          <input type="checkbox" id="temperature-checkbox" />
-          <div class="head">
-            <span>
-              <i class="fas fa-layer-group"> </i> Temperature</span>
-          </div>
-        </label>
-        <div id="temperature-layers">
-          <label>
-            <input type="radio" name="temperature" value="temperature" />
-            <div class="box">
-              <span>S.D.</span>
-            </div>
-          </label>
-
-          <label>
-            <input type="radio" name="temperature" value="groctemperature" />
-            <div class="box">
-              <span>GROC </span>
-            </div>
-          </label>
-
-          <label>
-            <input type="radio" name="temperature" value="Temp_WeightedGT_ALL" />
-            <div class="box">
-              <span>Hotspots</span>
-            </div>
-          </label>
-
-          <label>
-            <input type="radio" name="temperature" value="none" checked/>
-            <div class="none">
-              <span>CLEAR</span>
-            </div>
-          </label>
-        </div>
       </div>
     </div>
+
+    <div id="temperature-menu" class="sub-menu">
+
+      <label>
+        <input type="checkbox" id="temperature-checkbox" />
+        <div class="head">
+          <span>
+            <i class="fas fa-layer-group"> </i> Temperature</span>
+        </div>
+      </label>
+      <div id="temperature-layers">
+        <label>
+          <input type="radio" name="temperature" value="temperature" />
+          <div class="box">
+            <span>S.D.</span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="temperature" value="groctemperature" />
+          <div class="box">
+            <span>GROC </span>
+          </div>
+        </label>
+
+        <label>
+          <input type="radio" name="temperature" value="Temp_WeightedGT_ALL" />
+          <div class="box">
+            <span>Hotspots</span>
+          </div>
+        </label>
+
+
+      </div>
+    </div>
+
 
 
     <div id="crop-menu" class="sub-menu">
@@ -217,12 +199,6 @@
           </div>
         </label>
 
-        <label>
-          <input type="radio" name="crop" value="none" checked/>
-          <div class="none box">
-            <span>CLEAR</span>
-          </div>
-        </label>
       </div>
     </div>
 
@@ -254,10 +230,10 @@
           we define a “hotspot” as an area where; (i) crop yield is highly associated with climate variability; and (ii)
           seasonal forecast skill is moderate or high.
         </p>
-        <img src="../img/logo/usaid.png">
-        <img src="../img/logo/ciat.png">
-        <img src="../img/logo/ccafs.png">
-        <img src="../img/logo/iri.png">
+        <img src="img/logo/usaid.png">
+        <img src="img/logo/ciat.png">
+        <img src="img/logo/ccafs.png">
+        <img src="img/logo/iri.png">
       </div>
     </div>
   </div>
@@ -279,8 +255,26 @@
     var month = ["none", "DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "ASO", "SON", "OND", "NDJ"];
 
     $("input[type='radio']").click(function () {
+      var status = $(this).data("status");
+      var name = $(this).prop("name");
+
+      // clear the other checked options of the radio group
+      $("#" + name + "-menu input[type='radio']").each(function (index) {
+        $(this).data("status", "unchecked");;
+      });
+
+      // change of status checked/unchecked
+      if (status == undefined || status == "unchecked") {
+        $(this).prop("checked", true);
+        $(this).data("status", "checked");
+        ga('send', 'event', this.name, "check", $(this).val());
+      } else {
+        $(this).prop("checked", false);
+        $(this).data("status", "unchecked");
+        ga('send', 'event', this.name, "uncheck", $(this).val());
+      }
+
       updateMap();
-      ga('send', 'event', this.name, "check", $(this).val());
     });
 
     $("input[type='checkbox']").click(function () {
@@ -395,7 +389,8 @@
       $("#about-box").slideUp();
       $("#time-slider").toggle();
 
-      refreshMap("Combined_GDD", "none", "none", "none", true, month[1]);
+      refreshMap("Combined_GDD", undefined, undefined, undefined, true, month[1]);
+      $("#hotspots-menu input[type='radio']:checked").data("status", "checked");
     }
 
     function updateMap() {
@@ -439,10 +434,10 @@
       //assemble html and place in var
       var content = [];
 
-      if (hotspot != 'none') {
+      if (hotspot != undefined) {
 
         hotspotsOverlay = new google.maps.GroundOverlay(
-          "../img/" + 'hotspots' + '/' + hotspot + '.png',
+          "img/" + 'hotspots' + '/' + hotspot + '.png',
           mapImageBounds);
         hotspotsOverlay.setOpacity(0.7);
         hotspotsOverlay.setMap(map);
@@ -459,16 +454,16 @@
         content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
 
-      if (precipitationVar != 'none') {
+      if (precipitationVar != undefined) {
 
 
         if (precipitationVar == 'Precip_WeightedGP_ALL') {
           precipitationOverlay = new google.maps.GroundOverlay(
-            "../img/" + 'hotspots' + '/' + precipitationVar + '.png',
+            "img/" + 'hotspots' + '/' + precipitationVar + '.png',
             mapImageBounds);
         } else {
           precipitationOverlay = new google.maps.GroundOverlay(
-            "../img/" + precipitationVar + '/' + season + '.png',
+            "img/" + precipitationVar + '/' + season + '.png',
             mapImageBounds)
           showSlider = true;
         }
@@ -500,15 +495,15 @@
       }
 
 
-      if (temperatureVar != 'none') {
+      if (temperatureVar != undefined) {
 
         if (temperatureVar == 'Temp_WeightedGT_ALL') {
           temperatureOverlay = new google.maps.GroundOverlay(
-            "../img/" + 'hotspots' + '/' + temperatureVar + '.png',
+            "img/" + 'hotspots' + '/' + temperatureVar + '.png',
             mapImageBounds);
         } else {
           temperatureOverlay = new google.maps.GroundOverlay(
-            "../img/" + temperatureVar + '/' + season + '.png',
+            "img/" + temperatureVar + '/' + season + '.png',
             mapImageBounds);
           showSlider = true;
         }
@@ -541,10 +536,10 @@
         }
       }
 
-      if (crop != 'none') {
+      if (crop != undefined) {
 
         cropOverlay = new google.maps.GroundOverlay(
-          "../img/" + 'crops' + '/' + crop + '.png',
+          "img/" + 'crops' + '/' + crop + '.png',
           mapImageBounds);
         cropOverlay.setOpacity(0.7);
         cropOverlay.setMap(map);
@@ -568,7 +563,7 @@
       if (regions) {
 
         regionsOverlay = new google.maps.GroundOverlay(
-          "../img/" + 'LobelRegions' + '.png',
+          "img/" + 'LobelRegions' + '.png',
           mapImageBounds);
         regionsOverlay.setOpacity(0.95);
         regionsOverlay.setMap(map);

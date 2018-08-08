@@ -552,7 +552,7 @@
         if (content.length != 0) {
           content.push('<h3></h3>');
         }
-        if (crop.endsWith("filter")) {
+        if (crop == 'Maize_filter' || crop == 'Rice_filter' || crop == 'SpringWheat_filter' || crop == 'WinterWheat_filter') {
           content.push('<h3 class="ts-map-legend-headline">Hotspots</h3>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.23' + '</p>');
           content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.23, 0.46' + '</p>');

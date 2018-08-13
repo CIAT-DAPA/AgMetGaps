@@ -436,6 +436,7 @@
 
     function refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season) {
       var showSlider = false;
+      var opacity =0.9;
 
       // Create the legend and display on the map
       var legend = document.createElement('div');
@@ -450,7 +451,7 @@
         hotspotsOverlay = new google.maps.GroundOverlay(
           "../img/" + 'hotspots' + '/' + hotspot + '.png',
           mapImageBounds);
-        hotspotsOverlay.setOpacity(0.7);
+        hotspotsOverlay.setOpacity(opacity);
         hotspotsOverlay.setMap(map);
 
         switch (hotspot) {
@@ -478,7 +479,7 @@
             mapImageBounds)
           showSlider = true;
         }
-        precipitationOverlay.setOpacity(0.7);
+        precipitationOverlay.setOpacity(opacity);
         precipitationOverlay.setMap(map);
 
         if (content.length != 0) {
@@ -518,7 +519,7 @@
             mapImageBounds);
           showSlider = true;
         }
-        temperatureOverlay.setOpacity(0.7);
+        temperatureOverlay.setOpacity(opacity);
         temperatureOverlay.setMap(map);
 
 
@@ -552,7 +553,7 @@
         cropOverlay = new google.maps.GroundOverlay(
           "../img/" + 'crops' + '/' + crop + '.png',
           mapImageBounds);
-        cropOverlay.setOpacity(0.7);
+        cropOverlay.setOpacity(opacity);
         cropOverlay.setMap(map);
 
         if (content.length != 0) {

@@ -174,7 +174,7 @@
         </label>
 
         <label>
-          <input type="radio" name="crop" value="wheat_spring_cv" />
+          <input type="radio" name="crop" value="wheat_cv" />
           <div class="box">
             <span>S. Wheat yield</span>
           </div>
@@ -268,7 +268,7 @@
         $(this).prop("checked", true);
         $(this).data("status", "checked");
       } else {
-        $(this).prop("checked", false); 
+        $(this).prop("checked", false);
         $(this).data("status", "unchecked");
       }
 
@@ -435,6 +435,7 @@
 
     function refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season) {
       var showSlider = false;
+      var opacity = 0.95;
 
       // Create the legend and display on the map
       var legend = document.createElement('div');
@@ -449,7 +450,7 @@
         hotspotsOverlay = new google.maps.GroundOverlay(
           "img/" + 'hotspots' + '/' + hotspot + '.png',
           mapImageBounds);
-        hotspotsOverlay.setOpacity(0.7);
+        hotspotsOverlay.setOpacity(opacity);
         hotspotsOverlay.setMap(map);
 
         switch (hotspot) {
@@ -477,7 +478,7 @@
             mapImageBounds)
           showSlider = true;
         }
-        precipitationOverlay.setOpacity(0.7);
+        precipitationOverlay.setOpacity(opacity);
         precipitationOverlay.setMap(map);
 
         if (content.length != 0) {
@@ -486,22 +487,16 @@
         switch (precipitationVar) {
           case 'precipitation':
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V.</h3>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-1"></div>' + ' &lt; 0.33' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-2"></div>' + ' 0.33, 0.66' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-precipitation-3"></div>' + ' &gt; 0.66' + '</p>');
             break;
           case 'grocprecipitation':
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation GROC</h3>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
             break;
           case 'Precip_WeightedGP_ALL':
             content.push('<h3 class="ts-map-legend-headline">' + ' Precipitation hotspots</h3>');
-            content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' + '</p></br>');
-            content.push('<p>' + ' min. 0, max. 1' + '</p>');
             break;
         }
+        content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-precipitation"></div>' + '</p></br>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
 
 
@@ -517,7 +512,7 @@
             mapImageBounds);
           showSlider = true;
         }
-        temperatureOverlay.setOpacity(0.7);
+        temperatureOverlay.setOpacity(opacity);
         temperatureOverlay.setMap(map);
 
 
@@ -527,23 +522,16 @@
         switch (temperatureVar) {
           case 'temperature':
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature S.D. (&#8451)</h3>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-1"></div>' + ' &lt; 0.5' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-2"></div>' + ' 0.5, 1.0' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-3"></div>' + ' 1.0, 1.5' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-temperature-4"></div>' + ' &gt; 1.5 ' + '</p>');
             break;
           case 'groctemperature':
-            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>'); // uses same color as precipitation
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-1"></div>' + '&lt; 0.5' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-2"></div>' + '0.5, 0.7' + '</p>');
-            content.push('<p><div class="ts-map-legend-color ts-map-legend-color-grocprecipitation-3"></div>' + '&gt; 0.7' + '</p>');
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>');
             break;
           case 'Temp_WeightedGT_ALL':
             content.push('<h3 class="ts-map-legend-headline">' + ' Temperature hotspots</h3>');
-            content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' + '</p></br>');
-            content.push('<p>' + ' min. 0, max. 1' + '</p>');
             break;
         }
+        content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-temperature"></div>' + '</p></br>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
 
       if (crop != undefined) {
@@ -551,7 +539,7 @@
         cropOverlay = new google.maps.GroundOverlay(
           "img/" + 'crops' + '/' + crop + '.png',
           mapImageBounds);
-        cropOverlay.setOpacity(0.7);
+        cropOverlay.setOpacity(opacity);
         cropOverlay.setMap(map);
 
         if (content.length != 0) {
@@ -559,15 +547,12 @@
         }
         if (crop == 'Maize_filter' || crop == 'Rice_filter' || crop == 'SpringWheat_filter' || crop == 'WinterWheat_filter') {
           content.push('<h3 class="ts-map-legend-headline">Hotspots</h3>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.23' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.23, 0.46' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.46' + '</p>');
         } else {
           content.push('<h3 class="ts-map-legend-headline">Yield C.V.</h3>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-1"></div>' + '&lt; 0.33' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-2"></div>' + '0.33, 0.66' + '</p>');
-          content.push('<p><div class="ts-map-legend-color ts-map-legend-color-yield-3"></div>' + '&gt; 0.66' + '</p>');
+
         }
+        content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-crop"></div>' + '</p></br>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
 
       if (regions) {

@@ -216,7 +216,19 @@ h3.ts-map-legend-headline{
 }
 
 .ts-map-legend-gradient-hotspots {
-  background: linear-gradient(to right, white, #008000);
+  background: linear-gradient(to right, #b7d2b7, #008000);
+}
+
+.ts-map-legend-gradient-precipitation {
+  background: linear-gradient(to right, #85C1E9, #21618C);
+}
+
+.ts-map-legend-gradient-temperature {
+  background: linear-gradient(to right, #F1948A, #FF0000);
+}
+
+.ts-map-legend-gradient-crop {
+  background: linear-gradient(to right, #FFFF00, #FFC933);
 }
 
 .ts-map-legend-color-yield-1 {

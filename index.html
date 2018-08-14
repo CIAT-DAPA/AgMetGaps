@@ -36,26 +36,26 @@
   <div class="main-menu">
 
 
-    <div id="hotspots-menu" class="sub-menu">
+    <div id="global-menu" class="sub-menu">
 
       <label>
-        <input type="checkbox" id="hotspots-checkbox" />
+        <input type="checkbox" id="global-checkbox" />
         <div class="head">
           <span>
             <i class="fas fa-layer-group"> </i> Global hotspots</span>
         </div>
       </label>
 
-      <div id="hotspots-layers">
+      <div id="global-layers">
         <label>
-          <input type="radio" name="hotspots" value="Combined_GDD" checked />
+          <input type="radio" name="global" value="climate" checked />
           <div class="box">
             <span>Climate</span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="hotspots" value="mean_all_crops_filter" />
+          <input type="radio" name="global" value="crops" />
           <div class="box">
             <span>Crop</span>
           </div>
@@ -77,21 +77,21 @@
 
       <div id="precipitation-layers">
         <label>
-          <input type="radio" name="precipitation" value="precipitation" />
+          <input type="radio" name="precipitation" value="precipitation_cv" />
           <div class="box">
             <span>C.V.</span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="precipitation" value="grocprecipitation" />
+          <input type="radio" name="precipitation" value="precipitation_groc" />
           <div class="box">
             <span>GROC </span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="precipitation" value="Precip_WeightedGP_ALL" />
+          <input type="radio" name="precipitation" value="precipitation_hotspots" />
           <div class="box">
             <span>Hotspots</span>
           </div>
@@ -111,21 +111,21 @@
       </label>
       <div id="temperature-layers">
         <label>
-          <input type="radio" name="temperature" value="temperature" />
+          <input type="radio" name="temperature" value="temperature_cv" />
           <div class="box">
             <span>S.D.</span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="temperature" value="groctemperature" />
+          <input type="radio" name="temperature" value="temperature_groc" />
           <div class="box">
             <span>GROC </span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="temperature" value="Temp_WeightedGT_ALL" />
+          <input type="radio" name="temperature" value="temperature_hotspots" />
           <div class="box">
             <span>Hotspots</span>
           </div>
@@ -154,7 +154,7 @@
           </div>
         </label>
         <label>
-          <input type="radio" name="crop" value="Maize_filter" />
+          <input type="radio" name="crop" value="maize_hotspots" />
           <div class="box">
             <span>Maize hotspots</span>
           </div>
@@ -167,33 +167,33 @@
           </div>
         </label>
         <label>
-          <input type="radio" name="crop" value="Rice_filter" />
+          <input type="radio" name="crop" value="rice_hotspots" />
           <div class="box">
             <span>Rice hotspots</span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="crop" value="Wheat_cv" />
+          <input type="radio" name="crop" value="swheat_cv" />
           <div class="box">
             <span>S. Wheat yield</span>
           </div>
         </label>
         <label>
-          <input type="radio" name="crop" value="SpringWheat_filter" />
+          <input type="radio" name="crop" value="swheat_hotspots" />
           <div class="box">
             <span>S. Wheat hotspots</span>
           </div>
         </label>
 
         <label>
-          <input type="radio" name="crop" value="wheat_winter_cv" />
+          <input type="radio" name="crop" value="wwheat_cv" />
           <div class="box">
             <span>W. Wheat yield</span>
           </div>
         </label>
         <label>
-          <input type="radio" name="crop" value="WinterWheat_filter" />
+          <input type="radio" name="crop" value="wwheat_hotspots" />
           <div class="box">
             <span>W. Wheat hotspots</span>
           </div>
@@ -321,7 +321,7 @@
 
     });
 
-    var hotspotsOverlay;
+    var globalOverlay;
     var precipitationOverlay;
     var temperatureOverlay;
     var cropOverlay;
@@ -386,41 +386,41 @@
         mapTypeSelected = map.getMapTypeId();
       });
 
-      refreshMap("Combined_GDD", "precipitation", "temperature", "Maize_cv", true, month[1]); // initialize all
-      hotspotsOverlay.setMap(null);
+      refreshMap("climate", "precipitation_hotspots", "temperature_hotspots", "maize_cv", true, month[1]); // initialize all
+      globalOverlay.setMap(null);
       precipitationOverlay.setMap(null);
       temperatureOverlay.setMap(null);
       cropOverlay.setMap(null);
       regionsOverlay.setMap(null);
-      $("#hotspots-layers").toggle({ direction: "top" }, 1000);
+      $("#global-layers").toggle({ direction: "top" }, 1000);
       $("#precipitation-layers").toggle({ direction: "top" }, 1000);
       $("#temperature-layers").toggle({ direction: "top" }, 1000);
       $("#crop-layers").toggle({ direction: "top" }, 1000);
       $("#about-box").slideUp();
       $("#time-slider").toggle();
 
-      refreshMap("Combined_GDD", undefined, undefined, undefined, true, month[1]);
+      refreshMap("climate", undefined, undefined, undefined, true, month[1]);
       $("#hotspots-menu input[type='radio']:checked").data("status", "checked");
     }
 
     function updateMap() {
 
-      hotspotsOverlay.setMap(null);
+      globalOverlay.setMap(null);
       precipitationOverlay.setMap(null);
       temperatureOverlay.setMap(null);
       cropOverlay.setMap(null);
       regionsOverlay.setMap(null);
-      var hotspot = $("#hotspots-menu input[type='radio']:checked").val();
+      var global = $("#global-menu input[type='radio']:checked").val();
       var precipitationVar = $("#precipitation-menu input[type='radio']:checked").val();
       var temperatureVar = $("#temperature-menu input[type='radio']:checked").val();
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");
       var season = month[$("#time-slider").slider("value")];
-      refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season);
+      refreshMap(global, precipitationVar, temperatureVar, crop, regions, season);
     }
 
     function updateMapBySlider(season) {
-      hotspotsOverlay.setMap(null);
+      globalOverlay.setMap(null);
       precipitationOverlay.setMap(null);
       temperatureOverlay.setMap(null);
       cropOverlay.setMap(null);
@@ -433,7 +433,7 @@
       refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season);
     }
 
-    function refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season) {
+    function refreshMap(global, precipitationVar, temperatureVar, crop, regions, season) {
       var showSlider = false;
       var opacity = 0.7;
 
@@ -445,19 +445,19 @@
       //assemble html and place in var
       var content = [];
 
-      if (hotspot != undefined) {
+      if (global != undefined) {
 
-        hotspotsOverlay = new google.maps.GroundOverlay(
-          "img/" + 'hotspots' + '/' + hotspot + '.png',
+        globalOverlay = new google.maps.GroundOverlay(
+          "img/global/" + global + '.png',
           mapImageBounds);
-        hotspotsOverlay.setOpacity(opacity);
-        hotspotsOverlay.setMap(map);
+        globalOverlay.setOpacity(opacity);
+        globalOverlay.setMap(map);
 
-        switch (hotspot) {
-          case 'Combined_GDD':
+        switch (global) {
+          case 'climate':
             content.push('<h3 class="ts-map-legend-headline">' + ' Climate Hotspots</h3>');
             break;
-          case 'mean_all_crops_filter':
+          case 'crops':
             content.push('<h3 class="ts-map-legend-headline">' + ' Crop Hotspots</h3>');
             break;
         }
@@ -467,34 +467,36 @@
 
       if (precipitationVar != undefined) {
 
+        if (content.length != 0) {
+          content.push('<h3></h3>');
+        }
 
-        if (precipitationVar == 'Precip_WeightedGP_ALL') {
-          precipitationOverlay = new google.maps.GroundOverlay(
-            "img/" + 'hotspots' + '/' + precipitationVar + '.png',
-            mapImageBounds);
-        } else {
-          precipitationOverlay = new google.maps.GroundOverlay(
-            "img/" + precipitationVar + '/' + season + '.png',
-            mapImageBounds)
-          showSlider = true;
+        switch (precipitationVar) {
+          case 'precipitation_cv':
+            precipitationOverlay = new google.maps.GroundOverlay(
+              'img/precipitation/CV/' + season + "_" + precipitationVar + '.png',
+              mapImageBounds)
+            showSlider = true;
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V.</h3>');
+            break;
+          case 'precipitation_groc':
+            precipitationOverlay = new google.maps.GroundOverlay(
+              'img/precipitation/GROC/' + season + "_" + precipitationVar + '.png',
+              mapImageBounds)
+            showSlider = true;
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation GROC</h3>');
+            break;
+          case 'precipitation_hotspots':
+            precipitationOverlay = new google.maps.GroundOverlay(
+              'img/precipitation/hotspots/' + precipitationVar + '.png',
+              mapImageBounds);
+            content.push('<h3 class="ts-map-legend-headline">' + ' Precipitation hotspots</h3>');
+            break;
         }
         precipitationOverlay.setOpacity(opacity);
         precipitationOverlay.setMap(map);
 
-        if (content.length != 0) {
-          content.push('<h3></h3>');
-        }
-        switch (precipitationVar) {
-          case 'precipitation':
-            content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V.</h3>');
-            break;
-          case 'grocprecipitation':
-            content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation GROC</h3>');
-            break;
-          case 'Precip_WeightedGP_ALL':
-            content.push('<h3 class="ts-map-legend-headline">' + ' Precipitation hotspots</h3>');
-            break;
-        }
+
         content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-precipitation"></div>' + '</p></br>');
         content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
@@ -502,55 +504,74 @@
 
       if (temperatureVar != undefined) {
 
-        if (temperatureVar == 'Temp_WeightedGT_ALL') {
-          temperatureOverlay = new google.maps.GroundOverlay(
-            "img/" + 'hotspots' + '/' + temperatureVar + '.png',
-            mapImageBounds);
-        } else {
-          temperatureOverlay = new google.maps.GroundOverlay(
-            "img/" + temperatureVar + '/' + season + '.png',
-            mapImageBounds);
-          showSlider = true;
+        if (content.length != 0) {
+          content.push('<h3></h3>');
+        }
+
+        switch (temperatureVar) {
+          case 'temperature_sd':
+            temperatureOverlay = new google.maps.GroundOverlay(
+              'img/temperature/SD/' + season + "_" + temperatureVar + '.png',
+              mapImageBounds)
+            showSlider = true;
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature C.V.</h3>');
+            break;
+          case 'temperature_groc':
+            temperatureOverlay = new google.maps.GroundOverlay(
+              'img/temperature/GROC/' + season + "_" + temperatureVar + '.png',
+              mapImageBounds)
+            showSlider = true;
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>');
+            break;
+          case 'temperature_hotspots':
+            temperatureOverlay = new google.maps.GroundOverlay(
+              'img/temperature/hotspots/' + temperatureVar + '.png',
+              mapImageBounds);
+            content.push('<h3 class="ts-map-legend-headline">' + ' Temperature hotspots</h3>');
+            break;
         }
         temperatureOverlay.setOpacity(opacity);
         temperatureOverlay.setMap(map);
 
 
-        if (content.length != 0) {
-          content.push('<h3></h3>');
-        }
-        switch (temperatureVar) {
-          case 'temperature':
-            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature S.D. (&#8451)</h3>');
-            break;
-          case 'groctemperature':
-            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>');
-            break;
-          case 'Temp_WeightedGT_ALL':
-            content.push('<h3 class="ts-map-legend-headline">' + ' Temperature hotspots</h3>');
-            break;
-        }
         content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-temperature"></div>' + '</p></br>');
         content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }
 
       if (crop != undefined) {
 
+        var name = crop.split("_")[1];
+
         cropOverlay = new google.maps.GroundOverlay(
           "img/" + 'crops' + '/' + crop + '.png',
           mapImageBounds);
-        cropOverlay.setOpacity(opacity);
-        cropOverlay.setMap(map);
 
         if (content.length != 0) {
           content.push('<h3></h3>');
         }
-        if (crop == 'Maize_filter' || crop == 'Rice_filter' || crop == 'SpringWheat_filter' || crop == 'WinterWheat_filter') {
-          content.push('<h3 class="ts-map-legend-headline">Hotspots</h3>');
-        } else {
-          content.push('<h3 class="ts-map-legend-headline">Yield C.V.</h3>');
+
+        switch (name) {
+          case 'cv':
+            cropOverlay = new google.maps.GroundOverlay(
+              'img/crops/CV/' + crop + '.png',
+              mapImageBounds)
+            showSlider = true;
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature C.V.</h3>');
+            break;
+            content.push('<h3 class="ts-map-legend-headline">Yield C.V.</h3>');
+          case 'hotspots':
+            cropOverlay = new google.maps.GroundOverlay(
+              'img/crops/hotspots/' + crop + '.png',
+              mapImageBounds)
+            showSlider = true;
+            content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>');
+            content.push('<h3 class="ts-map-legend-headline">Hotspots</h3>');
+            break;
 
         }
+
+        cropOverlay.setOpacity(opacity);
+        cropOverlay.setMap(map);
         content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-crop"></div>' + '</p></br>');
         content.push('<p>' + ' min. 0, max. 1' + '</p>');
       }

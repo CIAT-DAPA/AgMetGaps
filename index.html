@@ -251,6 +251,8 @@
 
 
   <script>
+    var FTP_URL = 'ftp://ftp.ciat.cgiar.org/DAPA/projects/AgMetGaps/web/';
+    var IMG_URL = 'img/';
 
     var month = ["none", "DJF", "JFM", "FMA", "MAM", "AMJ", "MJJ", "JJA", "JAS", "ASO", "SON", "OND", "NDJ"];
 
@@ -448,7 +450,7 @@
       if (global != undefined) {
 
         globalOverlay = new google.maps.GroundOverlay(
-          "img/global/" + global + '.png',
+          IMG_URL + 'global/' + global + '.png',
           mapImageBounds);
         globalOverlay.setOpacity(opacity);
         globalOverlay.setMap(map);
@@ -474,21 +476,21 @@
         switch (precipitationVar) {
           case 'precipitation_cv':
             precipitationOverlay = new google.maps.GroundOverlay(
-              'img/precipitation/CV/' + season + "_" + precipitationVar + '.png',
+              IMG_URL + 'precipitation/CV/' + season + "_" + precipitationVar + '.png',
               mapImageBounds)
             showSlider = true;
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation C.V.</h3>');
             break;
           case 'precipitation_groc':
             precipitationOverlay = new google.maps.GroundOverlay(
-              'img/precipitation/GROC/' + season + "_" + precipitationVar + '.png',
+              IMG_URL + 'precipitation/GROC/' + season + "_" + precipitationVar + '.png',
               mapImageBounds)
             showSlider = true;
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Precipitation GROC</h3>');
             break;
           case 'precipitation_hotspots':
             precipitationOverlay = new google.maps.GroundOverlay(
-              'img/precipitation/hotspots/' + precipitationVar + '.png',
+              IMG_URL + 'precipitation/hotspots/' + precipitationVar + '.png',
               mapImageBounds);
             content.push('<h3 class="ts-map-legend-headline">' + ' Precipitation hotspots</h3>');
             break;
@@ -511,21 +513,21 @@
         switch (temperatureVar) {
           case 'temperature_sd':
             temperatureOverlay = new google.maps.GroundOverlay(
-              'img/temperature/SD/' + season + "_" + temperatureVar + '.png',
+              IMG_URL + 'temperature/SD/' + season + "_" + temperatureVar + '.png',
               mapImageBounds)
             showSlider = true;
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature C.V.</h3>');
             break;
           case 'temperature_groc':
             temperatureOverlay = new google.maps.GroundOverlay(
-              'img/temperature/GROC/' + season + "_" + temperatureVar + '.png',
+              IMG_URL + 'temperature/GROC/' + season + "_" + temperatureVar + '.png',
               mapImageBounds)
             showSlider = true;
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>');
             break;
           case 'temperature_hotspots':
             temperatureOverlay = new google.maps.GroundOverlay(
-              'img/temperature/hotspots/' + temperatureVar + '.png',
+              IMG_URL + 'temperature/hotspots/' + temperatureVar + '.png',
               mapImageBounds);
             content.push('<h3 class="ts-map-legend-headline">' + ' Temperature hotspots</h3>');
             break;
@@ -542,10 +544,6 @@
 
         var name = crop.split("_")[1];
 
-        cropOverlay = new google.maps.GroundOverlay(
-          "img/" + 'crops' + '/' + crop + '.png',
-          mapImageBounds);
-
         if (content.length != 0) {
           content.push('<h3></h3>');
         }
@@ -553,7 +551,7 @@
         switch (name) {
           case 'cv':
             cropOverlay = new google.maps.GroundOverlay(
-              'img/crops/CV/' + crop + '.png',
+              IMG_URL + 'crops/CV/' + crop + '.png',
               mapImageBounds)
             showSlider = true;
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature C.V.</h3>');
@@ -561,7 +559,7 @@
             content.push('<h3 class="ts-map-legend-headline">Yield C.V.</h3>');
           case 'hotspots':
             cropOverlay = new google.maps.GroundOverlay(
-              'img/crops/hotspots/' + crop + '.png',
+              IMG_URL + 'crops/hotspots/' + crop + '.png',
               mapImageBounds)
             showSlider = true;
             content.push('<h3 class="ts-map-legend-headline">' + season + ' Temperature GROC</h3>');
@@ -579,7 +577,7 @@
       if (regions) {
 
         regionsOverlay = new google.maps.GroundOverlay(
-          "img/" + 'LobelRegions' + '.png',
+          IMG_URL + 'LobelRegions' + '.png',
           mapImageBounds);
         regionsOverlay.setOpacity(0.95);
         regionsOverlay.setMap(map);

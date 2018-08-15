@@ -464,7 +464,7 @@
             break;
         }
         content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-hotspots"></div>' + '</p></br>');
-        content.push('<p>' + ' min. 0, max. 1' + '</p><p><i class="fas fa-download"> </i> download </p>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p><p> <i class="fas fa-download"> </i> <a href="' + FTP_URL + layerRelativePath + '.zip' + '">download</a> </p>');
       }
 
       if (precipitationVar != undefined) {
@@ -498,7 +498,7 @@
 
 
         content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-precipitation"></div>' + '</p></br>');
-        content.push('<p>' + ' min. 0, max. 1' + '</p>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p><p> <i class="fas fa-download"> </i> <a href="' + FTP_URL + layerRelativePath + '.zip' + '">download</a> </p>');
       }
 
 
@@ -532,7 +532,7 @@
 
 
         content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-temperature"></div>' + '</p></br>');
-        content.push('<p>' + ' min. 0, max. 1' + '</p>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p><p> <i class="fas fa-download"> </i> <a href="' + FTP_URL + layerRelativePath + '.zip' + '">download</a> </p>');
       }
 
       if (crop != undefined) {
@@ -562,7 +562,7 @@
         cropOverlay.setOpacity(opacity);
         cropOverlay.setMap(map);
         content.push('<p><div class="ts-map-legend-gradient ts-map-legend-gradient-crop"></div>' + '</p></br>');
-        content.push('<p>' + ' min. 0, max. 1' + '</p>');
+        content.push('<p>' + ' min. 0, max. 1' + '</p><p> <i class="fas fa-download"> </i> <a href="' + FTP_URL + layerRelativePath + '.zip' + '">download</a> </p>');
       }
 
       if (regions) {

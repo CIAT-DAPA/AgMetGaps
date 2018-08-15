@@ -190,6 +190,9 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 #ts-map-legend p{
   margin: 0 0 0 0 !important;
 }
+#ts-map-legend a{
+  color:  rgb(86, 86, 86); 
+}
 
 h3.ts-map-legend-headline{
   margin:0 !important;

@@ -275,26 +275,22 @@
       }
 
       updateMap();
-      gtag('send', {
-        'hitType': 'event',
-        'eventCategory': name + "",
-        'eventAction': $(this).data("status") + "",
-        'eventLabel': $(this).val() + ""
-      }
-      );
+
+      gtag('event', $(this).data("status") + "", {
+        'event_category': name + "",
+        'event_label': $(this).val() + ""
+      });
     });
 
     $("input[type='checkbox']").click(function () {
       var id = this.id;
       var name = id.split("-")[0];
       $("#" + name + "-layers").toggle({ direction: "top" }, 1000);
-      gtag('send', {
-        'hitType': 'event',
-        'eventCategory': name + "",
-        'eventAction': "toggle" + "",
-        'eventLabel': id + ""
-      }
-      );
+      gtag('event', "toggle" + "", {
+        'event_category': name + "",
+        'event_label': id + ""
+      });
+
     });
 
     $("#regions-checkbox").click(function () {
@@ -318,7 +314,10 @@
       slide: function (event, ui) {
         handle.text(month[ui.value]);
         updateMapBySlider(month[ui.value]);
-        ga('send', 'event', "slider", "slide", month[ui.value]);
+        gtag('event', "slide", {
+          'event_category': "slider",
+          'event_label': month[ui.value] + ""
+        });
       }
 
     });

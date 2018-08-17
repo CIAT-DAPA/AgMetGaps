@@ -111,7 +111,7 @@
       </label>
       <div id="temperature-layers">
         <label>
-          <input type="radio" name="temperature" value="temperature_cv" />
+          <input type="radio" name="temperature" value="temperature_sd" />
           <div class="box">
             <span>S.D.</span>
           </div>
@@ -508,7 +508,7 @@
         }
 
         switch (temperatureVar) {
-          case 'precipitation_cv':
+          case 'temperature_sd':
             layerRelativePath = 'temperature/SD/' + season + "_" + temperatureVar;
             temperatureOverlay = new google.maps.GroundOverlay(IMG_URL + layerRelativePath + '.png', mapImageBounds);
             showSlider = true;

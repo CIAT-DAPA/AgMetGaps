@@ -277,8 +277,8 @@
       updateMap();
 
       gtag('event', $(this).data("status") + "", {
-        'event_category': name + "",
-        'event_label': $(this).val() + ""
+        'event_category': "AgMetGaps",
+        'event_label': name + " " + $(this).val() + ""
       });
     });
 
@@ -287,8 +287,8 @@
       var name = id.split("-")[0];
       $("#" + name + "-layers").toggle({ direction: "top" }, 1000);
       gtag('event', "toggle" + "", {
-        'event_category': name + "",
-        'event_label': id + ""
+        'event_category': "AgMetGaps",
+        'event_label': name + " " + id + ""
       });
 
     });
@@ -315,8 +315,8 @@
         handle.text(month[ui.value]);
         updateMapBySlider(month[ui.value]);
         gtag('event', "slide", {
-          'event_category': "slider",
-          'event_label': month[ui.value] + ""
+          'event_category': "AgMetGaps",
+          'event_label': "slider " + month[ui.value] + ""
         });
       }
 

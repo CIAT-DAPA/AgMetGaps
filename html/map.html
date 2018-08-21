@@ -405,7 +405,6 @@
     }
 
     function updateMap() {
-
       globalOverlay.setMap(null);
       precipitationOverlay.setMap(null);
       temperatureOverlay.setMap(null);
@@ -431,7 +430,7 @@
       var temperatureVar = $("#temperature-menu input[type='radio']:checked").val();
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");
-      refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season);
+      refreshMap(global, precipitationVar, temperatureVar, crop, regions, season);
     }
 
     function refreshMap(global, precipitationVar, temperatureVar, crop, regions, season) {

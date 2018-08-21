@@ -401,7 +401,7 @@
       $("#time-slider").toggle();
 
       refreshMap("climate", undefined, undefined, undefined, true, month[1]);
-      $("#hotspots-menu input[type='radio']:checked").data("status", "checked");
+      $("#global-menu input[type='radio']:checked").data("status", "checked");
     }
 
     function updateMap() {
@@ -431,7 +431,7 @@
       var temperatureVar = $("#temperature-menu input[type='radio']:checked").val();
       var crop = $("#crop-menu input[type='radio']:checked").val();
       var regions = $("#regions-checkbox").is(":checked");
-      refreshMap(hotspot, precipitationVar, temperatureVar, crop, regions, season);
+      refreshMap(global, precipitationVar, temperatureVar, crop, regions, season);
     }
 
     function refreshMap(global, precipitationVar, temperatureVar, crop, regions, season) {

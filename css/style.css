@@ -9,15 +9,13 @@ html,body {
 }
 
 #time-slider {
-  margin: 10px 5% 10px 5%;
+  margin: 10px 10% 10px 10%;
   width: 80%;
   height: 5px;
   position: absolute;
-  bottom: 5%;   
-  left: 5%;
-  z-index: 4;
+  bottom: 5%;  
+  z-index: 3;
   text-align: center;
-  /* Made by */
 }
 
 #custom-handle {
@@ -29,156 +27,68 @@ html,body {
   line-height: 1.6em;
 }
 
-p {
-  font-family: 'Open Sans', Helvetica, Arial, Lucida, sans-serif;
-  text-align: left;
-  margin: 10px 5% 10px 5%;
-}
-
 h1, h2, h3, h4, h5, h6{
 font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 }
-.climate-menu {
+
+.main-menu {
   position: absolute;
-  top: 50px;   
-  left: 1%;
+  top: 15%;   
+  left: 10px;
   z-index: 4;
   text-align: center;
-  /* Made by */
 }
 
-.climate-menu input[type="radio"] {
-  display: none;
-  
-}
-.climate-menu input[type="radio"]:checked + .box {
-  background-color: #009933;
-  opacity: .8;   
-}
-.climate-menu input[type="radio"]:checked + .none {
-  background-color: white;
-  opacity: .8;   
-}
-.climate-menu input[type="radio"]+ .box span {
-  color: white;
-  transform: translateY(40%);
-}
-.climate-menu input[type="radio"]:checked + .box span {
-  color: white;
-  transform: translateY(25%);
-}
-.climate-menu input[type="radio"]+ .none span {
-  color: white;
-  transform: translateY(40%);
-}
-.climate-menu input[type="radio"]:checked + .none span {
-  color: black;
-  transform: translateY(25%);
-}
-
-.climate-menu .box {
-  width: 150px;
-  height: 35px;
-  background-color: #999999;
+#about-box {
+  width: 500px;
+  left: 0px;
+  top: 5px;
+  background-color: #FFFFFF;
   opacity: .8; 
   transition: all 250ms ease;
-  will-change: transition;
-  display: inline-block;
-  text-align: center;
+  text-align: left;
   cursor: pointer;
   position: relative;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-}
-.climate-menu .none {
-  width: 40px;
-  height: 35px;
-  background-color: black;
-  opacity: .7; 
-  transition: all 250ms ease;
-  will-change: transition;
-  text-align: center;
-  cursor: pointer;
-  position: relative;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-}
-.climate-menu .box span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  transition: all 300ms ease;
-  font-size: 1em;
-  user-select: none;
-  color: #fff;
-}
-.climate-menu .box span:before {
   font-size: 1em;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-  transition: all 300ms ease-in-out;
-  font-weight: normal;
-  color: white;
 }
-.climate-menu .none span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  transition: all 300ms ease;
-  font-size: 0.8em;
-  user-select: none;
-  color: #fff;
+#about-box p {
+  margin-left: 5px;
+  margin-top: 0px;
 }
-.climate-menu .none span:before {
-  font-size: 0.8em;
-  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-  transition: all 300ms ease-in-out;
-  font-weight: normal;
-  color: white;
+#about-box img {
+  max-height: 30px;
+  margin-left: 5px;
+  margin-top: 5px;
 }
 
 
 
-
-
-.crop-menu {
-  position: absolute;
-  top: 40%;   
-  left: 1%;
-  z-index: 4;
-  text-align: center;
-  /* Made by */
+.sub-menu input[type="radio"] {
+  display: none;  
 }
-
-.crop-menu input[type="radio"] {
+.sub-menu input[type="checkbox"] {
   display: none;
-  
-}
-.crop-menu input[type="radio"]:checked + .box {
-  background-color: #009933;
-  opacity: .8;   
-}
-.crop-menu input[type="radio"]:checked + .none {
-  background-color: white;
-  opacity: .8;   
-}
-.crop-menu input[type="radio"]+ .box span {
-  color: white;
-  transform: translateY(40%);
-}
-.crop-menu input[type="radio"]:checked + .box span {
-  color: white;
-  transform: translateY(25%);
-}
-.crop-menu input[type="radio"]+ .none span {
-  color: white;
-  transform: translateY(40%);
-}
-.crop-menu input[type="radio"]:checked + .none span {
-  color: black;
-  transform: translateY(25%);
 }
 
-.crop-menu .box {
-  width: 100px;
+
+.sub-menu input[type="radio"]:checked + .box {
+  background-color: #009933;
+  left: 10px;
+  opacity: .8;   
+}
+.sub-menu input[type="radio"]+ .box span {
+  color: white;
+  transform: translateY(40%);
+}
+.sub-menu input[type="radio"]:checked + .box span {
+  color: white;
+  transform: translateY(25%);
+}
+.sub-menu .box {
+  width: 130px;
   height: 35px;
+  left: 5px;
   background-color: #999999;
   opacity: .7; 
   transition: all 250ms ease;
@@ -188,50 +98,184 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
 }
+.sub-menu .box span {
+  font-size: 1em;
+  position: absolute;
+  left: 0;
+  right: 0;
+  transition: all 300ms ease;
+  user-select: none;
+  text-align: left;
+  margin-left: 5px;
+  color: #fff;
+}
+.sub-menu .box span:before {
+  font-size: 1em;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+  transition: all 300ms ease-in-out;
+  font-weight: normal;
+  color: white;
+}
 
-.crop-menu .none {
-  width: 100px;
-  height: 25px;
+
+.sub-menu input[type="checkbox"]:checked + .head {
+  background-color: white;
+  opacity: .8;   
+}
+.sub-menu input[type="checkbox"]+ .head span {
+  color: white;
+  transform: translateY(28%);
+}
+.sub-menu input[type="checkbox"]:checked + .head span {
+  color: black;
+  transform: translateY(25%);
+}
+.sub-menu .head {
+  width: 140px;
+  height: 30px;
   background-color: black;
   opacity: .7; 
   transition: all 250ms ease;
   will-change: transition;
-  text-align: center;
   cursor: pointer;
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
 }
-.crop-menu .box span {
+.sub-menu .head span {
+  font-size: 1em;
   position: absolute;
   left: 0;
   right: 0;
   transition: all 300ms ease;
-  font-size: 1em;
   user-select: none;
+  text-align: left;
+  margin-left: 5px;
   color: #fff;
 }
-.crop-menu .box span:before {
+.sub-menu .head span:before {
   font-size: 1em;
+  font-weight: bold;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
   transition: all 300ms ease-in-out;
   font-weight: normal;
   color: white;
 }
-.crop-menu .none span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  transition: all 300ms ease;
-  font-size: 0.8em;
-  user-select: none;
-  color: #fff;
-}
-.crop-menu .none span:before {
-  font-size: 0.8em;
+
+
+
+
+.ui-widget {
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
-  transition: all 300ms ease-in-out;
-  font-weight: normal;
-  color: white;
+  font-size: 1em;
 }
+
+
+
+#ts-map-legend {
+  background: #FFF;
+  padding: 0px;
+  margin: 12px;
+  font-size: 1em;
+  font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
+  overflow: hidden; 
+  text-align: left; 
+  color: rgb(86, 86, 86); 
+  -moz-user-select: none; 
+  background-color: rgb(255, 255, 255); padding: 8px; 
+  border-radius: 2px; 
+  background-clip: padding-box; 
+  box-shadow: 0px 1px 4px -1px rgba(0, 0, 0, 0.3); 
+  border-left: 0px none;
+}
+#ts-map-legend p{
+  margin: 0 0 0 0 !important;
+}
+#ts-map-legend a{
+  color:  rgb(86, 86, 86); 
+}
+
+h3.ts-map-legend-headline{
+  margin:0 !important;
+  padding:0 !important;
+  text-align: left;
+}
+
+.ts-map-legend-color {
+  height: 12px;
+  width: 12px;
+  margin-right: 3px;
+  float: left;
+  border-style: solid;
+  border-width: 1px;
+}
+
+.ts-map-legend-gradient {
+  height: 12px;
+  width: 70px;
+  margin-right: 3px;
+  float: left;
+  border-style: solid;
+  border-width: 1px;
+}
+
+.ts-map-legend-gradient-hotspots {
+  background: linear-gradient(to right, #b7d2b7, #008000);
+}
+
+.ts-map-legend-gradient-precipitation {
+  background: linear-gradient(to right, #85C1E9, #21618C);
+}
+
+.ts-map-legend-gradient-temperature {
+  background: linear-gradient(to right, #F1948A, #FF0000);
+}
+
+.ts-map-legend-gradient-crop {
+  background: linear-gradient(to right, #FFFF00, #FFC933);
+}
+
+.ts-map-legend-color-yield-1 {
+  background: #FFFF00;
+}
+.ts-map-legend-color-yield-2 {
+  background: #FFC933;
+}
+.ts-map-legend-color-yield-3 {
+  background: #FF0000;
+}
+
+.ts-map-legend-color-precipitation-1 {
+  background: #FDFEFE;
+}
+.ts-map-legend-color-precipitation-2 {
+  background: #3498DB;
+}
+.ts-map-legend-color-precipitation-3 {
+  background: #1B4F72;
+}
+
+.ts-map-legend-color-grocprecipitation-1 {
+  background: #CACFD2;
+}
+.ts-map-legend-color-grocprecipitation-2 {
+  background: #85C1E9;
+}
+.ts-map-legend-color-grocprecipitation-3 {
+  background: #21618C;
+}
+
+.ts-map-legend-color-temperature-1 {
+  background: #FDEDEC;
+}
+.ts-map-legend-color-temperature-2 {
+  background: #F1948A;
+}
+.ts-map-legend-color-temperature-3 {
+  background: #A569BD;
+}
+.ts-map-legend-color-temperature-4 {
+  background: #6C3483;
+}
+
 
 

@@ -3,7 +3,7 @@ var lightStyle = [
     "elementType": "geometry",
     "stylers": [
       {
-        "color": "#f5f5f5"
+        "color": "#ffffff"
       }
     ]
   },
@@ -170,7 +170,7 @@ var lightStyle = [
     "elementType": "geometry.fill",
     "stylers": [
       {
-        "color": "#000000"
+        "color": "#7eabed"
       }
     ]
   },
@@ -179,7 +179,7 @@ var lightStyle = [
     "elementType": "labels.text.fill",
     "stylers": [
       {
-        "color": "#ffffff"
+        "color": "#000000"
       }
     ]
   }

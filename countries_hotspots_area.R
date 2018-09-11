@@ -25,22 +25,29 @@ area_by_polygon <- function(countries, r, shapefile, variable){
     as('Spatial')
   
  
-  category_one <- crop(r, z) %>% 
+  r <- crop(r, z) %>% 
     mask(z)
   
   treshold_one <- which(r[] < 0.23)
   treshold_two <- which(r[] >= 0.23 & r[] < 0.46)
   treshold_three <- which(r[] >= 0.46)
   
-  category_one[treshold_one] <- 1
+  r[treshold_one] <- 1
+  r[treshold_two] <- 2
+  r[treshold_three] <- 3
   
-  mn <- tapply(area(category_one), category_one[], sum)
-  df <- data.frame(categoria=names(mn),sum=mn) %>%
-    rename(!!variable:=sum) %>%
+  mn_one <- tapply(area(r), r[], sum)
+  # mn_two <- tapply(area(r), r[], sum)
+  # mn_three <- tapply(area(r), r[], sum)
+  
+  df <- data.frame(categoria=names(mn_one),sum_one=mn_one) %>%
+    rename(!!variable:=sum_one) %>%
     tbl_df() %>%
-    filter(categoria ==1) %>%
-    filter(categoria ==1) %>%
-    mutate(Country = countries)
+    filter(categoria %in% c(1, 2, 3)) %>%
+    mutate(Country = countries)  %>%
+    spread(categoria, !!variable) %>%
+    rename_if(is.numeric, funs(glue('{variable}_{.}')))
+    
     
   
   
@@ -50,10 +57,10 @@ area_by_polygon <- function(countries, r, shapefile, variable){
 }
 
 
-w_crops <- purrr::map(.x = countries, .f = area_by_polygon, r = h_crops, shapefile = y, variable = 'hotspot_area_crop')
-w_crops <- bind_rows(w_crops) 
+w_crops <- purrr::map(.x = countries, .f = area_by_polygon, r = h_crops, shapefile = y, variable = 'crop')
+w_crops <- bind_rows(w_crops)
 
-w_climate <- purrr::map(.x = countries, .f = area_by_polygon, r = h_climate, shapefile = y, variable = 'hotspot_area_climate')
+w_climate <- purrr::map(.x = countries, .f = area_by_polygon, r = h_climate, shapefile = y, variable = 'climate')
 w_climate <- bind_rows(w_climate) 
 
 #w_climate <- purrr::map(.x= countries, .f = area_by_polygon, r = h_climate, shapefile = y)
@@ -69,12 +76,33 @@ a <- y %>% filter(ADM0_A3 %in% countries) %>%
 a <- data_frame(area =a, Country = countries)
 
 
-data <- reduce(.x = list(w_crops, w_climate, a), full_join, by = 'Country') %>%
-  dplyr::select(-categoria.x, -categoria.y) %>%
-  dplyr::select(Country, area, hotspot_area_crop, hotspot_area_climate) %>%
+make_area <- function(df){
+  
+  crop <- df %>%
+    dplyr::select(contains('crop')) %>%
+    colnames() 
+  
+  climate <- df %>%
+    dplyr::select(contains('climate')) %>%
+    colnames()
+
+  df %>%
+    mutate_at(.funs = funs(crop = ./area), .vars = glue('{crop}')) %>%
+    mutate_at(.funs = funs(climate = ./area), .vars = glue('{climate}')) 
+  # mutate(!!!glue('crop_{crop}') := !!!sym(glue('crop_{crop}'))/ !!!sym(glue('area')))
+}
+
+data <- reduce(.x = list(w_crops, w_climate, a), full_join, by ='Country') %>%
+  # dplyr::select(-categoria.x, -categoria.y) %>%
+  dplyr::select(Country, area, contains('crop'), contains('climate')) %>%
   mutate(area = as.numeric(area)/1000000) %>%
-  mutate(hotspots_percentage_crops = (hotspot_area_crop/area),
-         hotspots__percentage_climate = (hotspot_area_climate/area))
+  # mutate_at(.funs = funs(toAsset = ./area), .vars = glue("crop_1"))
+  nest() %>%
+  mutate(x = purrr::map(.x =data, .f = make_area)) %>%
+  unnest(x)
+  # mutate(!!(glue('hots_crop_1')) := !!sym(glue('crop_1'))/ !!sym(glue('area')))
+  # mutate(hotspots_percentage_crops = (hotspot_area_crop/area),
+  #        hotspots__percentage_climate = (hotspot_area_climate/area))
 
 write.csv(data, file = glue("{path}hotspots.csv"))
 

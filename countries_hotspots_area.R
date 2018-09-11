@@ -25,17 +25,20 @@ area_by_polygon <- function(countries, r, shapefile, variable){
     as('Spatial')
   
  
-  r <- crop(r, z) %>% 
+  category_one <- crop(r, z) %>% 
     mask(z)
   
-  treshold_one <- which(r[] > 0.0)
+  treshold_one <- which(r[] < 0.23)
+  treshold_two <- which(r[] >= 0.23 & r[] < 0.46)
+  treshold_three <- which(r[] >= 0.46)
   
-  r[treshold_one] <- 1
+  category_one[treshold_one] <- 1
   
-  mn <- tapply(area(r), r[], sum)
+  mn <- tapply(area(category_one), category_one[], sum)
   df <- data.frame(categoria=names(mn),sum=mn) %>%
     rename(!!variable:=sum) %>%
     tbl_df() %>%
+    filter(categoria ==1) %>%
     filter(categoria ==1) %>%
     mutate(Country = countries)
     

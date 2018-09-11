@@ -28,9 +28,9 @@ area_by_polygon <- function(countries, r, shapefile, variable){
   r <- crop(r, z) %>% 
     mask(z)
   
-  pos <- which(r[] > 0.0)
+  treshold_one <- which(r[] > 0.0)
   
-  r[pos] <- 1
+  r[treshold_one] <- 1
   
   mn <- tapply(area(r), r[], sum)
   df <- data.frame(categoria=names(mn),sum=mn) %>%
@@ -47,10 +47,10 @@ area_by_polygon <- function(countries, r, shapefile, variable){
 }
 
 
-w_crops <- purrr::map(.x = countries, .f = area_by_polygon, r = h_crops, shapefile = y, variable = 'area_crop')
+w_crops <- purrr::map(.x = countries, .f = area_by_polygon, r = h_crops, shapefile = y, variable = 'hotspot_area_crop')
 w_crops <- bind_rows(w_crops) 
 
-w_climate <- purrr::map(.x = countries, .f = area_by_polygon, r = h_climate, shapefile = y, variable = 'area_climate')
+w_climate <- purrr::map(.x = countries, .f = area_by_polygon, r = h_climate, shapefile = y, variable = 'hotspot_area_climate')
 w_climate <- bind_rows(w_climate) 
 
 #w_climate <- purrr::map(.x= countries, .f = area_by_polygon, r = h_climate, shapefile = y)
@@ -66,12 +66,14 @@ a <- y %>% filter(ADM0_A3 %in% countries) %>%
 a <- data_frame(area =a, Country = countries)
 
 
-reduce(.x = list(w_crops, w_climate, a), full_join, by = 'Country') %>%
+data <- reduce(.x = list(w_crops, w_climate, a), full_join, by = 'Country') %>%
   dplyr::select(-categoria.x, -categoria.y) %>%
-  dplyr::select(Country, area, area_crop, area_climate) %>%
+  dplyr::select(Country, area, hotspot_area_crop, hotspot_area_climate) %>%
   mutate(area = as.numeric(area)/1000000) %>%
-  mutate(hotspots_crops = (area_crop/area),
-         hotspots_climate = (area_climate/area))
+  mutate(hotspots_percentage_crops = (hotspot_area_crop/area),
+         hotspots__percentage_climate = (hotspot_area_climate/area))
+
+write.csv(data, file = glue("{path}hotspots.csv"))
 
 
 

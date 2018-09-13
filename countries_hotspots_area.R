@@ -1,5 +1,3 @@
-
-
 ## Librerias
 rm(list = ls())
 library(glue)
@@ -9,12 +7,12 @@ library(tidyverse)
 
 
 path <- "D:/agmetgaps/"
-hotspots <-c('crops', 'climate','precipitation_hotspots', 'temperature_hotspots',
-             'maize_hotspots','wwheat_hotspots')
+hotspots <-c('crops', 'climate','precipitation', 'temperature',
+             'maize')
 
 countries <- c('BFA', 'NER','SEN', 'MLI', 'NGA', 'GHA')
 
-y <- read_sf(glue("{path}ne_50m_admin_0_countries.shp")) %>%
+y <- read_sf(glue("{path}countries.shp")) %>%
   st_transform('+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0')
 
 
@@ -92,10 +90,7 @@ ar <- function(file,  variable, shape, countries){
       colnames() 
     
     
-    # climate <- df %>%
-    #   dplyr::select(contains('climate')) %>%
-    #   colnames()
-    # print(df)
+
     df %>%
       mutate_at(.funs = funs(./area), .vars = glue('{crop}')) 
     # mutate_at(.funs = funs(climate = ./area), .vars = glue('{climate}')) 

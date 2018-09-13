@@ -7,17 +7,27 @@ library(tidyverse)
 
 
 
-var <- c("crops", "temperature", "precipitation","maize","rice", "swheat","wwheat")
-var <- var[1]
+vars <- c("crops", "temperature", "precipitation","maize","rice", "swheat","wwheat")
 
-#make_histograms <- function(var){
-  path <- "D:/agmetgaps/"
-  input <- glue("{path}{var}.tif")
-  output <- glue("histogram_{var}.png")
-  name <- glue("Histogram of {var}")
-  h <- raster(input)
-  h <- h[]
-  png(file=output)
-  hist(h, col="steelblue", breaks=10, main=name)
+
+path <- "D:/agmetgaps/" 
+input <- glue("{path}{vars}.tif")
+h <- purrr::map(.x = input, .f = raster)
+output <- glue("{path}histogram_{vars}.png")
+
+
+
+
+make_histograms <- function(r, out){
+ 
+  
+  name <- names(r)
+  name <- glue("Histogram of {name}")
+  r <- r[]
+  png(file=out)
+  hist(r, col="steelblue", breaks=10, main = name)
   dev.off()
-#}
+  
+}
+
+purrr::map2(.x = h, .y = output, .f = make_histograms)

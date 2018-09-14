@@ -7,13 +7,13 @@ library(tidyverse)
 
 
 
-vars <- c("crops", "temperature", "precipitation","maize","rice", "swheat","wwheat")
+vars <- c("crops", "climate", "temperature", "precipitation","maize","rice", "swheat","wwheat")
 
 
 path <- "D:/agmetgaps/" 
 input <- glue("{path}{vars}.tif")
 h <- purrr::map(.x = input, .f = raster)
-output <- glue("{path}histogram_{vars}.png")
+output <- glue("{path}{vars}.png")
 
 
 
@@ -31,3 +31,16 @@ make_histograms <- function(r, out){
 }
 
 purrr::map2(.x = h, .y = output, .f = make_histograms)
+
+
+spdf <-rasterToPoints(h[[5]])
+df <- as.data.frame(spdf)
+
+(cl <- kmeans(spdf[, 3], 3))
+
+df <- data.frame(df, cl$cluster)
+ggplot() +  
+  geom_tile(data=df, aes(x=x, y=y, fill= as.factor(cl.cluster))) + 
+  scale_fill_viridis(discrete = T) +
+  coord_equal() +
+  theme_bw()

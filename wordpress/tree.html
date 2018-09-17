@@ -1,0 +1,82 @@
+<html>
+
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', { 'packages': ['treemap'] });
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+            var data = google.visualization.arrayToDataTable([
+                ['Location', 'Parent', 'Market trade volume (size)', 'Market increase/decrease (color)'],
+                ["Decision", null, 0, 0],
+                ["Precipitation", "Decision", 1, 1],
+                ["Temperature and Precipitation", "Decision", 1, 1],
+                ["Soil Moisture and Precipitation", "Decision", 1, 1],
+                ["Soil Temperature", "Decision", 1, 1],
+                ["Soil moisture", "Decision", 1, 1],
+                ["Precipitation - Daily", "Precipitation", 1, 1],
+                ["Precipitation - Dekadal", "Precipitation", 1, 1],
+                ["Precipitation - Seasonal", "Precipitation", 1, 1],
+                ["Temperature and Precipitation - Seasonal", "Temperature and Precipitation", 1, 1],
+                ["Soil Moisture and Precipitation - Dekadal", "Soil Moisture and Precipitation", 1, 1],
+                ["Soil Temperature - Seasonal", "Soil Temperature", 1, 1],
+                ["Soil moisture - Dekadal", "Soil moisture", 1, 1],
+                ["Soil moisture - Seasonal", "Soil moisture", 1, 1],
+                ["Rain forecast for the following few days", "Precipitation - Daily", 1, 1],
+                ["Rainy dekad forecast at the end of season", "Precipitation - Dekadal", 1, 1],
+                ["Dry spells forecast during the season", "Precipitation - Dekadal", 1, 1],
+                ["Heavy mid-season rains forecast", "Precipitation - Dekadal", 1, 1],
+                ["Rainfall increases during the season", "Precipitation - Dekadal", 1, 1],
+                ["Above normal rainfall forecast at planting", "Precipitation - Dekadal", 1, 1],
+                ["Wet dekad forecast after a dry dekad", "Precipitation - Dekadal", 1, 1],
+                ["Very wet dekad forecast after a rainy dekad", "Precipitation - Dekadal", 1, 1],
+                ["Dry dekad forecast after a wet dekad", "Precipitation - Dekadal", 1, 1],
+                ["Dry dekad forecast at the start of the season", "Precipitation - Dekadal", 1, 1],
+                ["Dekad with heavy rain forecast at the start of the season", "Precipitation - Dekadal", 1, 1],
+                ["Dry conditions forecast around crop flowering time", "Precipitation - Seasonal", 1, 1],
+                ["Wet conditions forecast around crop flowering time", "Precipitation - Seasonal", 1, 1],
+                ["Dry season (below average rainfall) forecast", "Precipitation - Seasonal", 1, 1],
+                ["Wet season (above average rainfall) forecast", "Precipitation - Seasonal", 1, 1],
+                ["Flooding forecast", "Precipitation - Seasonal", 1, 1],
+                ["La Niña conditions expected for the season", "Temperature and Precipitation - Seasonal", 1, 1],
+                ["El Niño conditions expected for the season", "Temperature and Precipitation - Seasonal", 1, 1],
+                ["Soil is dry and wet spell forecast for End of Season (EOS)", "Soil Moisture and Precipitation - Dekadal", 1, 1],
+                ["Soil is dry and no wet spell forecast for EOS", "Soil Moisture and Precipitation - Dekadal", 1, 1],
+                ["Soil is wet and no dry spell forecast for EOS", "Soil Moisture and Precipitation - Dekadal", 1, 1],
+                ["Soil is wet and a dry spell forecast for EOS", "Soil Moisture and Precipitation - Dekadal", 1, 1],
+                ["Soil temperature forecast to be <10°C for autumn", "Soil Temperature - Seasonal", 1, 1],
+                ["Soil will be frozen continuously throughout autumn and winter until March", "Soil Temperature - Seasonal", 1, 1],
+                ["Soils forecast to be very wet at sowing and harvest times", "Soil moisture - Dekadal", 1, 1],
+                ["Soils will be wet at harvest time", "Soil moisture - Seasonal", 1, 1],
+                ["Sow earlier so that plants can withstand heavy rains (maize)", "Above normal rainfall forecast at planting", 1, 1],
+                ["Sow crops later to avoid damage to crops from harsh rains", "Above normal rainfall forecast at planting", 1, 1],
+                ["Sow earlier (millet)", "Wet dekad forecast after a dry dekad", 1, 1],
+                ["1. Sow later (maize)", "Very wet dekad forecast after a rainy dekad", 1, 1],
+                ["1. Sow later (maize and peanut)", "Dry dekad forecast after a wet dekad", 1, 1],
+                ["2. Sow later (maize and peanut)", "Dry dekad forecast at the start of the season", 1, 1],
+                ["3. Sow later (maize and peanut)", "Dekad with heavy rain forecast at the start of the season", 1, 1],
+                ["2. Sow later (maize)", "Dry conditions forecast around crop flowering time", 1, 1],
+                ["Sow earlier (maize)", "Wet conditions forecast around crop flowering time", 1, 1]
+
+            ]);
+
+            tree = new google.visualization.TreeMap(document.getElementById('chart_div'));
+
+            tree.draw(data, {
+                minColor: '#f00',
+                midColor: '#ddd',
+                maxColor: '#0d0',
+                headerHeight: 15,
+                fontColor: 'black',
+                showScale: true
+            });
+
+        }
+    </script>
+</head>
+
+<body>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+</body>
+
+</html>

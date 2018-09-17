@@ -12,7 +12,6 @@
         media='all' />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ"
         crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
@@ -21,25 +20,26 @@
 
 <body>
 
-    <div id="global-menu" class="sub-menu">
+    <h3>For which temporal scale do you want to make decisions?</h3>
+    <div id="time-menu" class="sub-menu">
 
-        <div id="global-layers">
+        <div id="time-layers">
             <label>
-                <input type="radio" name="global" value="daily" checked />
+                <input type="radio" name="time" value="daily" checked />
                 <div class="box">
                     <span>Daily</span>
                 </div>
             </label>
 
             <label>
-                <input type="radio" name="global" value="seasonal" />
+                <input type="radio" name="time" value="seasonal" />
                 <div class="box">
                     <span>Seasonal</span>
                 </div>
             </label>
 
             <label>
-                <input type="radio" name="global" value="dekadal" />
+                <input type="radio" name="time" value="dekadal" />
                 <div class="box">
                     <span>Dekadal</span>
                 </div>
@@ -47,6 +47,86 @@
 
         </div>
     </div>
+
+    <h3>Which variable is more likely to affect you decisions?</h3>
+
+    <div id="var-menu" class="sub-menu">
+
+        <div id="var-layers">
+            <label>
+                <input type="radio" name="var" value="1" checked />
+                <div class="box">
+                    <span>Precipitation</span>
+                </div>
+            </label>
+
+            <label>
+                <input type="radio" name="var" value="2" />
+                <div class="box">
+                    <span>Temperature and Precipitation</span>
+                </div>
+            </label>
+
+            <label>
+                <input type="radio" name="var" value="3" />
+                <div class="box">
+                    <span>Soil Moisture and Precipitation</span>
+                </div>
+            </label>
+
+
+            <label>
+                <input type="radio" name="var" value="4" />
+                <div class="box">
+                    <span>Soil Temperature</span>
+                </div>
+            </label>
+
+            <label>
+                <input type="radio" name="var" value="5" />
+                <div class="box">
+                    <span>Soil Moisture</span>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <h3>Which is the forecast of the event?</h3>
+
+    <div id="event-menu" class="sub-menu">
+
+        <div id="var-layers">
+            <label>
+                <input type="radio" name="event" value="1" checked />
+                <div class="box">
+                    <span>Dry conditions forecast around crop flowering time</span>
+                </div>
+            </label>
+
+            <label>
+                <input type="radio" name="event" value="2" />
+                <div class="box">
+                    <span>Wet conditions forecast around crop flowering time</span>
+                </div>
+            </label>
+
+
+        </div>
+    </div>
+
+    <h3>Decision to consider</h3>
+
+    <h4>Sowing:</h4>
+    <div id="decision-menu" class="sub-menu">
+        <div class="alert">
+            Sow later (maize)
+        </div>
+
+
+    </div>
+
+
+
 
 
 

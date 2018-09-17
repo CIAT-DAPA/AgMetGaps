@@ -3,6 +3,11 @@ h1, h2, h3, h4, h5, h6{
 font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 }
 
+.main-menu {
+  position: absolute;
+  top: 5%;   
+  left : 5%;
+}
 
 .sub-menu input[type="radio"] {
   display: none;  
@@ -14,7 +19,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
 
 .sub-menu input[type="radio"]:checked + .box {
   background-color: #009933;
-  /*left: 10px;*/
+  left: 10px;
   opacity: .8;   
 }
 .sub-menu input[type="radio"]+ .box span {

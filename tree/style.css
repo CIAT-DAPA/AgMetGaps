@@ -1,3 +1,35 @@
+body, html {
+  height: 100%;
+}
+
+div.bg { 
+  /* The image used */
+  background-image: url("bg.jpg");
+
+  /* Full height */
+  height: 100%; 
+  opacity: 0.9;
+  filter: alpha(opacity=90); /* For IE8 and earlier */
+
+
+
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+div.transbox {  
+  position: absolute;
+  height: 100%; 
+  width: 100%;
+  background-color: black;
+  opacity: 0.6;
+  filter: alpha(opacity=60); /* For IE8 and earlier */
+  z-index: 2;
+
+}
+
 
 h1, h2, h3, h4, h5, h6{
 font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
@@ -7,6 +39,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   position: absolute;
   top: 5%;   
   left : 5%;
+  z-index: 3;
 }
 
 .sub-menu input[type="radio"] {
@@ -23,7 +56,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   opacity: .8;   
 }
 .sub-menu input[type="radio"]+ .box span {
-  color: white;
+  color: black;
   transform: translateY(40%);
 }
 .sub-menu input[type="radio"]:checked + .box span {
@@ -34,7 +67,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   width: 530px;
   height: 35px;
   left: 5px;
-  background-color: #999999;
+  background-color: #FFFFFF;
   opacity: .7; 
   /*display: inline-block;*/
   transition: all 250ms ease;
@@ -63,18 +96,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   color: white;
 }
 
-.sub-menu input[type="checkbox"]:checked + .head {
-  background-color: white;
-  opacity: .8;   
-}
-.sub-menu input[type="checkbox"]+ .head span {
-  color: white;
-  transform: translateY(28%);
-}
-.sub-menu input[type="checkbox"]:checked + .head span {
-  color: black;
-  transform: translateY(25%);
-}
 .sub-menu .head {
   width: 140px;
   height: 30px;

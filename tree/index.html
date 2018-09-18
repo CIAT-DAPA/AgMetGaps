@@ -18,6 +18,22 @@
 
 </head>
 
+<script>
+$("input[type='radio']").click(function () {
+    var name = $(this).prop("name");
+
+    updateMap();
+
+    gtag('event', $(this).data("status") + "", {
+        'event_category': "AgMetGaps_actions",
+        'event_label': name + " " + $(this).val() + ""
+    });
+});
+
+
+
+</script>
+
 <body>
     <div class="bg">
 

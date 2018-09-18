@@ -75,21 +75,21 @@
 
             <div id="envr-layers">
                 <label>
-                    <input type="radio" name="envr" value="PREP" />
+                    <input type="radio" name="envr" value="prep" />
                     <div class="box">
                         <span>Precipitation</span>
                     </div>
                 </label>
 
                 <label>
-                    <input type="radio" name="envr" value="TEMP_PREP" />
+                    <input type="radio" name="envr" value="temp_prep" />
                     <div class="box">
                         <span>Temperature and Precipitation</span>
                     </div>
                 </label>
 
                 <label>
-                    <input type="radio" name="envr" value="SOILM_PREP" />
+                    <input type="radio" name="envr" value="soilm_prep" />
                     <div class="box">
                         <span>Soil Moisture and Precipitation</span>
                     </div>
@@ -97,14 +97,14 @@
 
 
                 <label>
-                    <input type="radio" name="envr" value="SOILT" />
+                    <input type="radio" name="envr" value="soilt" />
                     <div class="box">
                         <span>Soil Temperature</span>
                     </div>
                 </label>
 
                 <label>
-                    <input type="radio" name="envr" value="SOILM" />
+                    <input type="radio" name="envr" value="soilm" />
                     <div class="box">
                         <span>Soil Moisture</span>
                     </div>
@@ -123,29 +123,33 @@
             </label>
 
             <div id="event-layers">
-                <label>
-                    <input type="radio" name="event" value="1" />
-                    <div class="box" time="seasonal" envr="PREP">
-                        <span>Dry conditions forecast around crop flowering time</span>
-                    </div>
-                </label>
-
-                <label>
-                    <input type="radio" name="event" value="2" />
-                    <div class="box" time="seasonal" envr="PREP">
-                        <span>Wet conditions forecast around crop flowering time</span>
-                    </div>
-                </label>
-
-                <label>
-                    <input type='radio' name='event' value='3' />
-                    <div class="box" time="daily" envr="PREP">
-                        <span>Rain forecast for the following few days</span>
-                    </div>
-                </label>
-
-
-
+                <label><input type='radio' name='event' value='3'  /><div class= 'box' time='daily' envr='prep'><span>Rain forecast for the following few days</span></div></label>
+                <label><input type='radio' name='event' value='4'  /><div class= 'box' time='dekadal' envr='prep'><span>Rainy dekad forecast at the end of season</span></div></label>
+                <label><input type='radio' name='event' value='5'  /><div class= 'box' time='dekadal' envr='prep'><span>Dry spells forecast during the season</span></div></label>
+                <label><input type='radio' name='event' value='6'  /><div class= 'box' time='dekadal' envr='prep'><span>Heavy mid-season rains forecast</span></div></label>
+                <label><input type='radio' name='event' value='7'  /><div class= 'box' time='dekadal' envr='prep'><span>Rainfall increases during the season</span></div></label>
+                <label><input type='radio' name='event' value='8'  /><div class= 'box' time='dekadal' envr='prep'><span>Above normal rainfall forecast at planting</span></div></label>
+                <label><input type='radio' name='event' value='10'  /><div class= 'box' time='dekadal' envr='prep'><span>Wet dekad forecast after a dry dekad</span></div></label>
+                <label><input type='radio' name='event' value='11'  /><div class= 'box' time='dekadal' envr='prep'><span>Very wet dekad forecast after a rainy dekad</span></div></label>
+                <label><input type='radio' name='event' value='12'  /><div class= 'box' time='dekadal' envr='prep'><span>Dry dekad forecast after a wet dekad</span></div></label>
+                <label><input type='radio' name='event' value='13'  /><div class= 'box' time='dekadal' envr='prep'><span>Dry dekad forecast at the start of the season</span></div></label>
+                <label><input type='radio' name='event' value='14'  /><div class= 'box' time='dekadal' envr='prep'><span>Dekad with heavy rain forecast at the start of the season</span></div></label>
+                <label><input type='radio' name='event' value='15'  /><div class= 'box' time='seasonal' envr='prep'><span>Dry conditions forecast around crop flowering time</span></div></label>
+                <label><input type='radio' name='event' value='16'  /><div class= 'box' time='seasonal' envr='prep'><span>Wet conditions forecast around crop flowering time</span></div></label>
+                <label><input type='radio' name='event' value='17'  /><div class= 'box' time='seasonal' envr='prep'><span>Dry season (below average rainfall) forecast</span></div></label>
+                <label><input type='radio' name='event' value='22'  /><div class= 'box' time='seasonal' envr='prep'><span>Wet season (above average rainfall) forecast</span></div></label>
+                <label><input type='radio' name='event' value='27'  /><div class= 'box' time='seasonal' envr='prep'><span>Flooding forecast</span></div></label>
+                <label><input type='radio' name='event' value='28'  /><div class= 'box' time='seasonal' envr='temp_prep'><span>La Niña conditions expected for the season</span></div></label>
+                <label><input type='radio' name='event' value='30'  /><div class= 'box' time='seasonal' envr='temp_prep'><span>El Niño conditions expected for the season</span></div></label>
+                <label><input type='radio' name='event' value='32'  /><div class= 'box' time='dekadal' envr='soilm_prep'><span>Soil is dry and wet spell forecast for End of Season (EOS)</span></div></label>
+                <label><input type='radio' name='event' value='33'  /><div class= 'box' time='dekadal' envr='soilm_prep'><span>Soil is dry and no wet spell forecast for EOS</span></div></label>
+                <label><input type='radio' name='event' value='34'  /><div class= 'box' time='dekadal' envr='soilm_prep'><span>Soil is wet and no dry spell forecast for EOS</span></div></label>
+                <label><input type='radio' name='event' value='35'  /><div class= 'box' time='dekadal' envr='soilm_prep'><span>Soil is wet and a dry spell forecast for EOS</span></div></label>
+                <label><input type='radio' name='event' value='36'  /><div class= 'box' time='seasonal' envr='soilt'><span>Soil temperature forecast to be <10°C for autumn</span></div></label>
+                <label><input type='radio' name='event' value='37'  /><div class= 'box' time='seasonal' envr='soilt'><span>Soil will be frozen continuously throughout autumn and winter until March</span></div></label>
+                <label><input type='radio' name='event' value='38'  /><div class= 'box' time='dekadal' envr='soilm'><span>Soils forecast to be very wet at sowing and harvest times</span></div></label>
+                <label><input type='radio' name='event' value='39'  /><div class= 'box' time='seasonal' envr='soilm'><span>Soils will be wet at harvest time</span></div></label>
+                
 
             </div>
         </div>
@@ -179,6 +183,7 @@
                 var envr = $("#envr-menu input[type='radio']:checked").val();
                 $('#event-menu div.box').hide("fast", "linear");
                 if (time != undefined && envr != undefined) {
+                    console.log('#event-menu div.box[time="' + time + '"][envr="' + envr + '"]');
                     $('#event-menu div.box[time="' + time + '"][envr="' + envr + '"]').show("fast", "linear");
                 }
 

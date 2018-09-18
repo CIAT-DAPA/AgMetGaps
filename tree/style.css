@@ -135,6 +135,7 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   width: 530px;
   padding: 20px;
   background-color: #ff9800; 
+  opacity: .9; 
   font-size: 1em;
   /*font-weight: bold;*/
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;

@@ -63,7 +63,7 @@
         </div>
 
 
-        <div id="var-menu" class="sub-menu">
+        <div id="envr-menu" class="sub-menu">
 
             <label>
                 <div class="head">
@@ -73,23 +73,23 @@
                 </div>
             </label>
 
-            <div id="var-layers">
+            <div id="envr-layers">
                 <label>
-                    <input type="radio" name="var" value="1" />
+                    <input type="radio" name="envr" value="PREP" />
                     <div class="box">
                         <span>Precipitation</span>
                     </div>
                 </label>
 
                 <label>
-                    <input type="radio" name="var" value="2" />
+                    <input type="radio" name="envr" value="TEMP_PREP" />
                     <div class="box">
                         <span>Temperature and Precipitation</span>
                     </div>
                 </label>
 
                 <label>
-                    <input type="radio" name="var" value="3" />
+                    <input type="radio" name="envr" value="SOILM_PREP" />
                     <div class="box">
                         <span>Soil Moisture and Precipitation</span>
                     </div>
@@ -97,14 +97,14 @@
 
 
                 <label>
-                    <input type="radio" name="var" value="4" />
+                    <input type="radio" name="envr" value="SOILT" />
                     <div class="box">
                         <span>Soil Temperature</span>
                     </div>
                 </label>
 
                 <label>
-                    <input type="radio" name="var" value="5" />
+                    <input type="radio" name="envr" value="SOILM" />
                     <div class="box">
                         <span>Soil Moisture</span>
                     </div>
@@ -122,24 +122,24 @@
                 </div>
             </label>
 
-            <div id="var-layers">
+            <div id="event-layers">
                 <label>
                     <input type="radio" name="event" value="1" />
-                    <div class="box precipitation seasonal">
+                    <div class="box" time="seasonal" envr="PREP">
                         <span>Dry conditions forecast around crop flowering time</span>
                     </div>
                 </label>
 
                 <label>
                     <input type="radio" name="event" value="2" />
-                    <div class="box precipitation seasonal">
+                    <div class="box" time="seasonal" envr="PREP">
                         <span>Wet conditions forecast around crop flowering time</span>
                     </div>
                 </label>
 
                 <label>
                     <input type='radio' name='event' value='3' />
-                    <div class='box precipitation daily'>
+                    <div class="box" time="daily" envr="PREP">
                         <span>Rain forecast for the following few days</span>
                     </div>
                 </label>
@@ -171,11 +171,16 @@
 
 
         <script>
+            $('#event-menu div.box').hide("fast", "linear");
 
-            $("input[type='radio']").click(function () {
+            $("input[type='radio']").change(function () {
                 var name = $(this).prop("name");
-                console.log(name);
-                $(".seasonal").toggle();
+                var time = $("#time-menu input[type='radio']:checked").val();
+                var envr = $("#envr-menu input[type='radio']:checked").val();
+                $('#event-menu div.box').hide("fast", "linear");
+                if (time != undefined && envr != undefined) {
+                    $('#event-menu div.box[time="' + time + '"][envr="' + envr + '"]').show("fast", "linear");
+                }
 
             });
 

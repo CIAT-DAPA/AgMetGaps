@@ -75,37 +75,37 @@
 
             <div id="envr-layers">
                 <label>
-                    <input type="radio" name="envr" value="prep" time='daily dekadal seasonal' />
-                    <div class="box">
+                    <input type="radio" name="envr" value="prep" />
+                    <div class="box" time='daily dekadal seasonal'>
                         <span>Precipitation</span>
                     </div>
                 </label>
 
                 <label>
-                    <input type="radio" name="envr" value="temp_prep" time='seasonal' />
-                    <div class="box">
+                    <input type="radio" name="envr" value="temp_prep" />
+                    <div class="box" time='seasonal'>
                         <span>Temperature and Precipitation</span>
                     </div>
                 </label>
 
                 <label>
-                    <input type="radio" name="envr" value="soilm_prep" time='dekadal' />
-                    <div class="box">
+                    <input type="radio" name="envr" value="soilm_prep" />
+                    <div class="box" time='dekadal'>
                         <span>Soil Moisture and Precipitation</span>
                     </div>
                 </label>
 
 
                 <label>
-                    <input type="radio" name="envr" value="soilt" time='seasonal' time='dekadal seasonal' />
-                    <div class="box">
+                    <input type="radio" name="envr" value="soilt" time='seasonal' />
+                    <div class="box" time='seasonal'>
                         <span>Soil Temperature</span>
                     </div>
                 </label>
 
                 <label>
                     <input type="radio" name="envr" value="soilm" />
-                    <div class="box">
+                    <div class="box" time='dekadal seasonal'>
                         <span>Soil Moisture</span>
                     </div>
                 </label>
@@ -306,10 +306,28 @@
 
         <script>
             $('#event-menu div.box').hide("fast", "linear");
+            $('#envr-menu div.box').hide("fast", "linear");
+
+            $("#time-menu input[type='radio']").change(function () {
+                updateEnvr();
+            });
 
             $("#envr-menu input[type='radio']").change(function () {
                 updateEvents();
             });
+
+            function updateEnvr() {
+                var name = $(this).prop("name");
+                var time = $("#time-menu input[type='radio']:checked").val();
+                //var time_envr = $("#envr-menu input[type='radio']:checked").attr('time');
+
+                $('#envr-menu div.box').hide("fast", "linear");
+                if (time != undefined) {
+                    $('#envr-menu div.box[time*="' + time + '"]').show("fast", "linear");
+                }
+                updateEvents();
+
+            }
 
             function updateEvents() {
                 var name = $(this).prop("name");

@@ -32,7 +32,8 @@
             <label>
                 <div class="head">
                     <span>
-                        <h3>For which temporal scale do you want to make decisions?</h3>
+                        <h3> <i class="fas fa-question-circle"></i> For which temporal scale do you want to make
+                            decisions?</h3>
                     </span>
                 </div>
             </label>
@@ -68,7 +69,8 @@
             <label>
                 <div class="head">
                     <span>
-                        <h3>Which variable is more likely to affect you decisions?</h3>
+                        <h3> <i class="fas fa-question-circle"></i> Which variable is more likely to affect you
+                            decisions?</h3>
                     </span>
                 </div>
             </label>
@@ -117,7 +119,7 @@
             <label>
                 <div class="head">
                     <span>
-                        <h3>Which is the forecast of the event?</h3>
+                        <h3> <i class="fas fa-question-circle"></i> Which is the forecast of the event?</h3>
                     </span>
                 </div>
             </label>
@@ -285,36 +287,46 @@
         </div>
 
 
-        <div id="action-menu" class="sub-menu">
-
+        <div id="action-menu" class="info-menu">
             <label>
                 <div class="head">
                     <span>
-                        <h3>Actions to consider according to the forecast</h3>
+                        <h3> <i class="fas fa-exclamation-circle"></i> Actions to consider according to the forecast:</h3>
+                    </span>
                 </div>
-                </span>
             </label>
 
-
-        </div>
-
-        <h4>Sowing:</h4>
-        <div class="alert">
-            Sow later (maize)
+            <div id="action-layers">
+                <label>
+                    <div class='box' event="3">
+                        <span>
+                            Sow later (maize)
+                        </span></div>
+                </label>
+            </div>
         </div>
 
 
         <script>
-            $('#event-menu div.box').hide("fast", "linear");
-            $('#envr-menu div.box').hide("fast", "linear");
 
             $("#time-menu input[type='radio']").change(function () {
                 updateEnvr();
             });
 
+            $('#envr-menu div.head').hide("fast", "linear");
+            $('#envr-menu div.box').hide("fast", "linear");
             $("#envr-menu input[type='radio']").change(function () {
                 updateEvents();
             });
+
+            $('#event-menu div.head').hide("fast", "linear");
+            $('#event-menu div.box').hide("fast", "linear");
+            $("#event-menu input[type='radio']").change(function () {
+                updateActions();
+            });
+
+            $('#action-menu div.head').hide("fast", "linear");
+            $('#action-menu div.box').hide("fast", "linear");
 
             function updateEnvr() {
                 var name = $(this).prop("name");
@@ -323,7 +335,10 @@
 
                 $('#envr-menu div.box').hide("fast", "linear");
                 if (time != undefined) {
+                    $('#envr-menu div.head').show("fast", "linear");
                     $('#envr-menu div.box[time*="' + time + '"]').show("fast", "linear");
+                } else {
+                    $('#envr-menu div.head').hide("fast", "linear");
                 }
                 updateEvents();
 
@@ -335,7 +350,23 @@
                 var envr = $("#envr-menu input[type='radio']:checked").val();
                 $('#event-menu div.box').hide("fast", "linear");
                 if (time != undefined && envr != undefined) {
+                    $('#event-menu div.head').show("fast", "linear");
                     $('#event-menu div.box[time="' + time + '"][envr="' + envr + '"]').show("fast", "linear");
+                } else {
+                    $('#event-menu div.head').hide("fast", "linear");
+                }
+                updateActions();
+            }
+
+            function updateActions() {
+                var name = $(this).prop("name");
+                var event = $("#event-menu input[type='radio']:checked").val();
+                $('#action-menu div.box').hide("fast", "linear");
+                if (event != undefined) {
+                    $('#action-menu div.head').show("fast", "linear");
+                    $('#action-menu div.box[event="' + event + '"]').show("fast", "linear");
+                } else {
+                    $('#action-menu div.head').hide("fast", "linear");
                 }
 
             }

@@ -1,5 +1,5 @@
 body, html {
-  height: 100%;
+  height: 99%;
 }
 
 div.bg { 
@@ -7,7 +7,7 @@ div.bg {
   background-image: url("bg.jpg");
 
   /* Full height */
-  height: 100%; 
+  height: 99%; 
   opacity: 0.9;
   filter: alpha(opacity=90); /* For IE8 and earlier */
 
@@ -129,7 +129,6 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   color: white;
 }
 
-
 .info-menu .box {
   width: 530px;
   height: 35px;
@@ -144,8 +143,9 @@ font-family:'Abel', Helvetica, Arial, Lucida, sans-serif
   position: relative;
   font-family:'Abel', Helvetica, Arial, Lucida, sans-serif;
 }
-.info-menu .box span {
+.info-menu .box span{
   font-size: 1em;
+  width: 70%;
   position: absolute;
   left: 0;
   right: 0;

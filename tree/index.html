@@ -437,7 +437,8 @@
                 var name = $(this).prop("name");
                 var time = $("#time-menu input[type='radio']:checked").val();
                 var envr = $("#envr-menu input[type='radio']:checked").val();
-                $('#event-menu div.box').hide("fast", "linear");
+                $("#event-menu div.box").hide("fast", "linear");
+                $("#event-menu input[type='radio']:checked").prop( "checked", false );
                 if (time != undefined && envr != undefined) {
                     $('#event-menu div.head').show("fast", "linear");
                     $('#event-menu div.box[time="' + time + '"][envr="' + envr + '"]').show("fast", "linear");

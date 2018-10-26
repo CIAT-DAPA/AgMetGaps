@@ -323,7 +323,7 @@ function refreshMap(global, precipitationVar, temperatureVar, crop, regions, sea
         content.push('<p>' + 'Western Africa' + '</p>');
         content.push('<p>' + 'Eastern Africa' + '</p>');
         content.push('<p>' + 'Southern Asia' + '</p>');
-        content.push('<p>' + 'Easthern Asia' + '</p>');
+        content.push('<p>' + 'Eastern Asia' + '</p>');
     }
     legend.innerHTML = content.join('');
     legend.index = 1;

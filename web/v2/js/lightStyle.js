@@ -50,6 +50,15 @@ var lightStyle = [
     ]
   },
   {
+    "featureType": "administrative.province",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#808080"
+      }
+    ]
+  },
+  {
     "featureType": "poi",
     "elementType": "geometry",
     "stylers": [
@@ -94,69 +103,6 @@ var lightStyle = [
     ]
   },
   {
-    "featureType": "road",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#ffffff"
-      }
-    ]
-  },
-  {
-    "featureType": "road.arterial",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#757575"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#dadada"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#616161"
-      }
-    ]
-  },
-  {
-    "featureType": "road.local",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#9e9e9e"
-      }
-    ]
-  },
-  {
-    "featureType": "transit.line",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#e5e5e5"
-      }
-    ]
-  },
-  {
-    "featureType": "transit.station",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#eeeeee"
-      }
-    ]
-  },
-  {
     "featureType": "water",
     "elementType": "geometry",
     "stylers": [
@@ -170,7 +116,7 @@ var lightStyle = [
     "elementType": "geometry.fill",
     "stylers": [
       {
-        "color": "#7eabed"
+        "color": "#c8c8c8"
       }
     ]
   },

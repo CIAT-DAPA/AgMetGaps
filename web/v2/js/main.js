@@ -179,7 +179,7 @@ function updateMapBySlider(season) {
 
 function refreshMap(global, precipitationVar, temperatureVar, crop, regions, season) {
     var showSlider = false;
-    var opacity = 0.7;
+    var opacity = 1.0;
 
     // Create the legend and display on the map
     var legend = document.createElement('div');
@@ -312,7 +312,7 @@ function refreshMap(global, precipitationVar, temperatureVar, crop, regions, sea
         regionsOverlay = new google.maps.GroundOverlay(
             IMG_URL + 'LobelRegions' + '.png',
             mapImageBounds);
-        regionsOverlay.setOpacity(0.95);
+        regionsOverlay.setOpacity(1.0);
         regionsOverlay.setMap(map);
 
         if (content.length != 0) {

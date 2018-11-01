@@ -137,7 +137,7 @@ function initMap() {
     temperatureOverlay.setMap(null);
     cropOverlay.setMap(null);
     regionsOverlay.setMap(null);
-    $("#global-layers").toggle({ direction: "top" }, 1000);
+    //$("#global-layers").toggle({ direction: "top" }, 1000);
     $("#precipitation-layers").toggle({ direction: "top" }, 1000);
     $("#temperature-layers").toggle({ direction: "top" }, 1000);
     $("#crop-layers").toggle({ direction: "top" }, 1000);
@@ -145,7 +145,7 @@ function initMap() {
     $("#time-slider").toggle();
 
     refreshMap("climate", undefined, undefined, undefined, true, month[1]);
-    $("#hotspots-menu input[type='radio']:checked").data("status", "checked");
+    $("#global-menu input[type='radio']:checked").data("status", "checked");
 }
 
 function updateMap() {
